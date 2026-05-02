@@ -1,11 +1,11 @@
 export function PixelButton({
-                                children,
-                                className = "",
-                                ...props
-                            }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-    return (
-        <button
-            className={`
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      className={`
         font-pixel text-[10px] uppercase tracking-wider
         px-6 py-3
         border-b-4 border-r-4 border-t-2 border-l-2
@@ -18,9 +18,9 @@ export function PixelButton({
         transition-all cursor-pointer
         ${className}
       `}
-            {...props}
-        >
-            {children}
-        </button>
-    );
+      {...props}
+    >
+      {children}
+    </button>
+  );
 }

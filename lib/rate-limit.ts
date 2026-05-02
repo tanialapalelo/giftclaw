@@ -6,7 +6,7 @@ import { Redis } from "@upstash/redis";
 // tidak bisa "gaming" dengan kirim 5 request di detik 59,
 // tunggu reset, kirim 5 lagi di detik 01.
 export const rateLimiter = new Ratelimit({
-    redis: Redis.fromEnv(), // baca UPSTASH_REDIS_REST_URL + TOKEN dari .env
-    limiter: Ratelimit.slidingWindow(5, "60 s"),
-    analytics: true,
+  redis: Redis.fromEnv(), // baca UPSTASH_REDIS_REST_URL + TOKEN dari .env
+  limiter: Ratelimit.slidingWindow(5, "60 s"),
+  analytics: true,
 });
