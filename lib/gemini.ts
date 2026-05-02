@@ -3,9 +3,9 @@ import type { FriendProfile } from "@/types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-// responseJsonSchema MENJAMIN output selalu cocok dengan schema ini.
-// Berbeda dengan responseMimeType yang hanya "mencoba" output JSON (bisa gagal).
-// Dengan ini: response.text selalu valid JSON, tidak perlu try/catch parse.
+// responseJsonSchema always output with this schema.
+// it's different from responseMimeType that only tries to output JSON (could be failed).
+// therefore response.text always returns valid JSON, no need for try/catch parse.
 const giftResponseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -55,7 +55,7 @@ Profile:
 Give practical, specific gifts available in Southeast Asia.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash-lite",
+    model: "gemini-2.5-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
