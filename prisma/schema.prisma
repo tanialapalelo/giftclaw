@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// generator client {
+//   provider = "prisma-client"
+//   output   = "../app/generated/prisma"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Friend {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  interests   String[]
+  hobbies     String[]
+  dislikes    String[]
+  budgetMin   Int?     @map("budget_min")
+  budgetMax   Int?     @map("budget_max")
+  notes       String?
+  theme       String   @default("soft")
+  editPinHash String?  @map("edit_pin_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  giftSuggestions GiftSuggestion[]
+
+  @@map("friends")
+}
+
+model GiftSuggestion {
+  id           String   @id @default(uuid()) @db.Uuid
+  friendId     String   @map("friend_id") @db.Uuid
+  suggestions  Json
+  modelVersion String   @map("model_version")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  friend Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@map("gift_suggestions")
+}
