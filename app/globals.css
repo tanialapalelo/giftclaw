@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ===== CUSTOM FONTS (gantikan tailwind.config fontFamily) ===== */
+@theme {
+    --font-pixel: var(--font-pixel), monospace;
+    --font-body: var(--font-body), sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ===== PIXEL ART CORE ===== */
+
+.pixel-render {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.pixel-border {
+    box-shadow:
+            -4px 0 0 0 currentColor,
+            4px 0 0 0 currentColor,
+            0 -4px 0 0 currentColor,
+            0  4px 0 0 currentColor,
+            -4px -4px 0 0 currentColor,
+            4px -4px 0 0 currentColor,
+            -4px  4px 0 0 currentColor,
+            4px  4px 0 0 currentColor;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.crt-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.03) 2px,
+            rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
 }
+
+/* ===== PIXEL BACKGROUNDS ===== */
+
+.bg-pixel-stars {
+    background-image:
+            radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+            radial-gradient(2px 2px at 90px 40px, #fff, transparent),
+            radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.6), transparent),
+            radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+    background-size: 200px 100px;
+}
+
+.bg-pixel-grid {
+    background-image:
+            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+
+.bg-pixel-check {
+    background-image:
+            linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(0,0,0,0.05) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.05) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.05) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes poof {
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.5); opacity: 0.8; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes fade-in {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+}
+
+.animate-poof    { animation: poof 0.4s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+.animate-float   { animation: float 2s ease-in-out infinite; }
+.animate-blink   { animation: blink 1s step-end infinite; }
