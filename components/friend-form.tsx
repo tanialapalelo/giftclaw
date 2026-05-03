@@ -94,6 +94,7 @@ export function FriendForm() {
         : null,
       notes: (formData.get("notes") as string) || null,
       theme,
+      _honeypot: formData.get("_honeypot") as string,
     };
 
     startTransition(async () => {
@@ -118,6 +119,10 @@ export function FriendForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px" }}>
+        <input name="_honeypot" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
           Friend&apos;s Name
@@ -179,6 +184,8 @@ export function FriendForm() {
             name="budgetMin"
             type="number"
             placeholder="Min e.g. 100000"
+            min={0}
+            max={100000000}
             className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
           />
           <span className="font-body text-gray-400">—</span>
@@ -186,9 +193,16 @@ export function FriendForm() {
             name="budgetMax"
             type="number"
             placeholder="Max e.g. 500000"
+            min={0}
+            max={100000000}
             className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
           />
         </div>
+        {errors.budgetMin && (
+          <p className="mt-1 font-body text-xs text-red-500">
+            {errors.budgetMin[0]}
+          </p>
+        )}
       </div>
 
       <div>

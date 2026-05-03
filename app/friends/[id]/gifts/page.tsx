@@ -72,11 +72,6 @@ export default async function GiftsPage({
 
         {/* CTA */}
         <div className="space-y-3 pt-2">
-          <Link href={`/friends/${id}/claw`} className="block">
-            <PixelButton className="w-full bg-gray-900 text-white hover:bg-gray-700">
-              🕹️ PLAY CLAW MACHINE
-            </PixelButton>
-          </Link>
           <Link href={`/friends/${id}`} className="block">
             <PixelButton className="w-full bg-white text-gray-900">
               ← BACK TO PROFILE
