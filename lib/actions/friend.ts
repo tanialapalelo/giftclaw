@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { friendSchema } from "@/lib/validations";
 
@@ -28,23 +27,32 @@ export async function createFriend(formData: unknown) {
     },
   });
 
-  // 3. Redirect to friend page
   revalidatePath("/");
-  redirect(`/friends/${friend.id}`);
+
+  return {
+    id: friend.id,
+    name: friend.name,
+    theme: parsed.data.theme,
+    shareToken: friend.shareToken,
+  };
 }
 
 export async function getFriend(id: string) {
-  const friend = await prisma.friend.findUnique({
-    where: { id },
-  });
+  try {
+    const friend = await prisma.friend.findUnique({
+      where: { id },
+    });
 
-  if (!friend) return null;
+    if (!friend) return null;
 
-  return {
-    ...friend,
-    createdAt: friend.createdAt.toISOString(),
-    updatedAt: friend.updatedAt.toISOString(),
-  };
+    return {
+      ...friend,
+      createdAt: friend.createdAt.toISOString(),
+      updatedAt: friend.updatedAt.toISOString(),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function getAllFriends() {
@@ -62,4 +70,21 @@ export async function getAllFriends() {
     ...f,
     createdAt: f.createdAt.toISOString(),
   }));
+}
+
+export async function getFriendByShareToken(shareToken: string) {
+  try {
+    const friend = await prisma.friend.findUnique({
+      where: { shareToken },
+      select: {
+        id: true,
+        name: true,
+        theme: true,
+        shareToken: true,
+      },
+    });
+    return friend;
+  } catch (error) {
+    console.error("Error fetching friend by share token:", error);
+  }
 }

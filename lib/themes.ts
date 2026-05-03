@@ -7,13 +7,13 @@ export const THEMES = {
       pattern: "bg-pixel-check",
     },
     text: {
-      primary: "text-gray-900", // ← gelap untuk bg terang
+      primary: "text-gray-900",
       secondary: "text-gray-500",
       accent: "text-pink-600",
     },
     machine: {
       frame: "bg-pink-400 border-pink-600",
-      neon: "neon-pink", // ← class CSS kita buat di globals
+      neon: "neon-pink", // ← our class CSS in `globals.css`
       interior: "bg-gradient-to-b from-pink-50 via-white to-rose-100",
       rail: "bg-pink-300",
       floor: "bg-pink-300",
@@ -50,7 +50,7 @@ export const THEMES = {
       pattern: "bg-pixel-stars",
     },
     text: {
-      primary: "text-white", // ← terang untuk bg gelap
+      primary: "text-white", // ← light for dark bg
       secondary: "text-slate-400",
       accent: "text-cyan-400",
     },
@@ -136,7 +136,7 @@ export const THEMES = {
       pattern: "bg-pixel-grid",
     },
     text: {
-      primary: "text-yellow-400", // ← FIX: kuning di background hitam
+      primary: "text-yellow-400",
       secondary: "text-gray-400",
       accent: "text-yellow-300",
     },

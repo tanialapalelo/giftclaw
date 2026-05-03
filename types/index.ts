@@ -1,5 +1,6 @@
 export interface FriendProfile {
   id: string;
+  shareToken: string;
   name: string;
   interests: string[];
   hobbies: string[];

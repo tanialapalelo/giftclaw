@@ -49,6 +49,7 @@ export async function getGiftSuggestions(friendId: string) {
 
   const friendProfile: FriendProfile = {
     id: friend.id,
+    shareToken: friend.shareToken,
     name: friend.name,
     interests: friend.interests,
     hobbies: friend.hobbies,
@@ -72,16 +73,9 @@ export async function getGiftSuggestions(friendId: string) {
     },
   });
 
-  // return juga update:
   return {
     suggestions: result.suggestions,
     modelVersion: "gemini-2.5-flash",
-    cached: false,
-  };
-
-  return {
-    suggestions: result.suggestions,
-    modelVersion: "gemini-2.0-flash-lite",
     cached: false,
   };
 }

@@ -5,6 +5,8 @@ import { THEMES } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelButton } from "@/components/ui/pixel-button";
+import { isValidUUID } from "@/lib/utils";
+import { CopyLinkButton } from "@/components/copy-link-button";
 
 export default async function FriendPage({
   params,
@@ -12,6 +14,9 @@ export default async function FriendPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  if (!isValidUUID(id)) notFound();
+
   const friend = await getFriend(id);
 
   if (!friend) notFound();
@@ -72,13 +77,19 @@ export default async function FriendPage({
           </div>
         </PixelCard>
 
+        <div className={`rounded border p-4 space-y-2 ${theme.machine.frame}`}>
+          <p className="font-pixel text-[8px] text-white uppercase tracking-widest">
+            🔗 SHARE WITH {friend.name.toUpperCase()}
+          </p>
+          <p className="font-body text-xs text-white/70">
+            Send this link to {friend.name} — they'll play the claw machine to
+            reveal their gift. They won't see your budget or notes.
+          </p>
+          <CopyLinkButton path={`/play/${friend.shareToken}`} />
+        </div>
+
         {/* CTA */}
         <div className="space-y-3">
-          <Link href={`/friends/${id}/claw`} className="block">
-            <PixelButton className="w-full bg-gray-900 text-white hover:bg-gray-700">
-              🕹️ PLAY CLAW MACHINE
-            </PixelButton>
-          </Link>
           <Link href={`/friends/${id}/gifts`} className="block">
             <PixelButton className="w-full bg-white text-gray-900">
               🎁 SEE GIFT IDEAS
