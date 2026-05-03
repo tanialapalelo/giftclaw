@@ -1,4 +1,3 @@
-// app/friends/[id]/gifts/page.tsx
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getFriend } from "@/lib/actions/friend";
@@ -7,6 +6,7 @@ import { THEMES } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
 import { PixelButton } from "@/components/ui/pixel-button";
 import { GiftCard } from "@/components/gift-card";
+import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
 
 export default async function GiftsPage({
@@ -15,6 +15,9 @@ export default async function GiftsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  if (!isValidUUID(id)) notFound();
+
   const friend = await getFriend(id);
   if (!friend) notFound();
 
@@ -28,23 +31,33 @@ export default async function GiftsPage({
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
-          <p className="font-pixel text-[8px] uppercase tracking-widest text-gray-500">
+          <p
+            className={`font-pixel text-[8px] uppercase tracking-widest ${theme.text.secondary}`}
+          >
             AI Gift Ideas for
           </p>
           <h1 className={`mt-1 font-pixel text-base ${theme.text.primary}`}>
             {friend.name}
           </h1>
-          {result.cached && (
+          {"cached" in result && result.cached && (
             <span className="mt-2 inline-block rounded-full bg-green-100 px-3 py-1 font-body text-xs text-green-700">
               ✦ Saved suggestions
             </span>
           )}
         </div>
 
-        {/* Error State */}
-        {"error" in result && result.error && (
-          <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 text-center">
-            <p className="font-body text-sm text-red-600">{result.error}</p>
+        {/* Error state — rate limit */}
+        {"error" in result && (
+          <div className="rounded border border-red-200 bg-red-50 p-4 text-center space-y-2">
+            <p className="font-pixel text-[8px] text-red-600">
+              COULD NOT GENERATE GIFTS
+            </p>
+            <p className="font-body text-sm text-red-500">{result.error}</p>
+            {"remaining" in result && (
+              <p className="font-pixel text-[7px] text-red-400">
+                TOO MANY REQUESTS — PLEASE WAIT A MINUTE AND REFRESH
+              </p>
+            )}
           </div>
         )}
 

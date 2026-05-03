@@ -44,9 +44,6 @@ export function GiftCard({
           </h3>
           <p className="font-body text-sm text-gray-600">{gift.reason}</p>
           <div className="flex items-center gap-3 pt-1">
-            <span className="rounded-full bg-gray-100 px-3 py-1 font-body text-xs font-medium text-gray-700">
-              {gift.priceRange}
-            </span>
             <span className="rounded-full bg-gray-100 px-3 py-1 font-body text-xs text-gray-500">
               {gift.category}
             </span>

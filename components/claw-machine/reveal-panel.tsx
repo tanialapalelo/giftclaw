@@ -27,11 +27,6 @@ export function RevealPanel({
       </p>
       <div className="mt-3 flex items-center justify-center gap-2">
         <span
-          className={`rounded-full px-3 py-1 font-body text-xs font-medium ${theme.reveal.badge} bg-black/10`}
-        >
-          {gift.priceRange}
-        </span>
-        <span
           className={`rounded-full px-3 py-1 font-body text-xs ${theme.reveal.badge} bg-black/10`}
         >
           {gift.category}

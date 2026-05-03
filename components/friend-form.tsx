@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createFriend } from "@/lib/actions/friend";
+import { saveProfileToLocalStorage } from "@/components/recent-profiles";
 import { ThemePicker } from "@/components/theme-picker";
 import { PixelButton } from "@/components/ui/pixel-button";
-import { PixelCard } from "@/components/ui/pixel-card";
 import type { ThemeKey } from "@/lib/themes";
 
 function TagInput({
@@ -68,6 +69,7 @@ function TagInput({
 }
 
 export function FriendForm() {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [theme, setTheme] = useState<ThemeKey>("soft");
   const [interests, setInterests] = useState<string[]>([]);
@@ -96,15 +98,26 @@ export function FriendForm() {
 
     startTransition(async () => {
       const result = await createFriend(data);
-      if (result?.error) {
+
+      if ("error" in result) {
         setErrors(result.error as Record<string, string[]>);
+        return;
       }
+
+      saveProfileToLocalStorage({
+        id: result.id,
+        shareToken: result.shareToken,
+        name: result.name,
+        theme: result.theme,
+        createdAt: new Date().toISOString(),
+      });
+
+      router.push(`/friends/${result.id}`);
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Name */}
       <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
           Friend&apos;s Name
@@ -122,7 +135,6 @@ export function FriendForm() {
         )}
       </div>
 
-      {/* Interests */}
       <TagInput
         label="Interests ✦"
         placeholder="e.g. gaming, cooking, music..."
@@ -138,7 +150,6 @@ export function FriendForm() {
         </p>
       )}
 
-      {/* Hobbies */}
       <TagInput
         label="Hobbies"
         placeholder="e.g. hiking, reading, coffee..."
@@ -149,7 +160,6 @@ export function FriendForm() {
         }
       />
 
-      {/* Dislikes */}
       <TagInput
         label="Dislikes (helps AI avoid bad gifts)"
         placeholder="e.g. spicy food, loud music..."
@@ -160,7 +170,6 @@ export function FriendForm() {
         }
       />
 
-      {/* Budget */}
       <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
           Budget (IDR)
@@ -182,7 +191,6 @@ export function FriendForm() {
         </div>
       </div>
 
-      {/* Notes */}
       <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
           Extra Notes
@@ -195,10 +203,8 @@ export function FriendForm() {
         />
       </div>
 
-      {/* Theme Picker */}
       <ThemePicker value={theme} onChange={setTheme} />
 
-      {/* Submit */}
       <PixelButton
         type="submit"
         disabled={isPending}

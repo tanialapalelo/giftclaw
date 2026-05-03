@@ -1,4 +1,4 @@
-import { useCallback, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import type { GiftSuggestion } from "@/types";
 
 export type GamePhase =
@@ -23,9 +23,16 @@ type GameAction =
   | { type: "GRAB" }
   | { type: "LIFT" }
   | { type: "SHOW_RESULT" }
-  | { type: "RESET" };
+  | { type: "RESET"; startX: number };
 
 const CLAW_STEP = 12;
+
+// Hitung posisi X center prize ke-i dalam flex justify-around
+// justify-around: gap | box | gap | box | gap
+// center box ke-i = ((2*i + 1) / (2*n)) * 100
+export function getPrizeX(index: number, total: number): number {
+  return ((2 * index + 1) / (2 * total)) * 100;
+}
 
 function reducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -53,9 +60,9 @@ function reducer(state: GameState, action: GameAction): GameState {
     case "RESET":
       return {
         phase: "moving",
-        clawX: 50,
+        clawX: action.startX,
         clawY: 0,
-        targetX: 50,
+        targetX: action.startX,
         grabbedPrize: null,
       };
     default:
@@ -64,13 +71,23 @@ function reducer(state: GameState, action: GameAction): GameState {
 }
 
 export function useClawGame(gifts: GiftSuggestion[]) {
+  const middleIndex = Math.floor(gifts.length / 2);
+  const startX = gifts.length > 0 ? getPrizeX(middleIndex, gifts.length) : 50;
+
   const [state, dispatch] = useReducer(reducer, {
     phase: "moving",
-    clawX: 50,
+    clawX: startX,
     clawY: 0,
-    targetX: 50,
+    targetX: startX,
     grabbedPrize: null,
   });
+
+  // Saat gifts berubah (reshuffle setelah Try Again),
+  // reset posisi claw ke tengah susunan baru
+  useEffect(() => {
+    dispatch({ type: "RESET", startX });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gifts]);
 
   const grab = useCallback(() => {
     if (state.phase !== "moving") return;
@@ -81,15 +98,9 @@ export function useClawGame(gifts: GiftSuggestion[]) {
       Math.max(0, Math.floor(state.clawX / prizeWidth))
     );
 
-    const prizeX = ((2 * nearestIndex + 1) / (2 * gifts.length)) * 100;
+    const prizeX = getPrizeX(nearestIndex, gifts.length);
 
     dispatch({ type: "DROP", targetX: prizeX, prizeIndex: nearestIndex });
-
-    // Timeline:
-    // 0ms    → claw turun + geser ke prize (700ms transition)
-    // 700ms  → fingers tutup (GRAB)
-    // 1100ms → claw naik sambil bawa prize (LIFT)
-    // 1900ms → reveal
     setTimeout(() => dispatch({ type: "GRAB" }), 700);
     setTimeout(() => dispatch({ type: "LIFT" }), 1100);
     setTimeout(() => dispatch({ type: "SHOW_RESULT" }), 1900);
@@ -100,6 +111,7 @@ export function useClawGame(gifts: GiftSuggestion[]) {
     moveLeft: () => dispatch({ type: "MOVE_LEFT" }),
     moveRight: () => dispatch({ type: "MOVE_RIGHT" }),
     grab,
-    reset: () => dispatch({ type: "RESET" }),
+    reset: (newStartX?: number) =>
+      dispatch({ type: "RESET", startX: newStartX ?? startX }),
   };
 }
