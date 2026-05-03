@@ -3,9 +3,9 @@ import type { FriendProfile } from "@/types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-// responseJsonSchema MENJAMIN output selalu cocok dengan schema ini.
-// Berbeda dengan responseMimeType yang hanya "mencoba" output JSON (bisa gagal).
-// Dengan ini: response.text selalu valid JSON, tidak perlu try/catch parse.
+// responseJsonSchema always output with this schema.
+// it's different from responseMimeType that only tries to output JSON (could be failed).
+// therefore response.text always returns valid JSON, no need for try/catch parse.
 const giftResponseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -42,20 +42,22 @@ export async function analyzeGifts(friend: FriendProfile) {
       ? `Rp${friend.budgetMin.toLocaleString()} - Rp${friend.budgetMax.toLocaleString()}`
       : "flexible";
 
-  const prompt = `Analyze this person's profile and suggest 5 gift ideas.
+  const prompt = `Analyze this person's profile and suggest 8 gift ideas.
 
 Profile:
 - Name: ${friend.name}
 - Interests: ${friend.interests.join(", ")}
-- Hobbies: ${friend.hobbies.join(", ")}
-- Dislikes: ${friend.dislikes.join(", ")}
+- Hobbies: ${friend.hobbies.join(", ") || "not specified"}
+- Dislikes: ${friend.dislikes.join(", ") || "none"}
 - Budget: ${budget}
-- Notes: ${friend.notes ?? "none"}
+- Notes: ${friend.notes || "none"}
 
-Give practical, specific gifts available in Southeast Asia.`;
+Suggest 8 thoughtful, specific, varied gifts across different categories.
+Each should feel personal, not generic. Mix practical and fun gifts.
+Price range should be in IDR format.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash-lite",
+    model: "gemini-2.5-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",

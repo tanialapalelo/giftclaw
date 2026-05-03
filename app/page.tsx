@@ -1,65 +1,67 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getAllFriends } from "@/lib/actions/friend";
+import { PixelButton } from "@/components/ui/pixel-button";
+import { PixelCard } from "@/components/ui/pixel-card";
+import { THEMES } from "@/lib/themes";
 
-export default function Home() {
+export default async function HomePage() {
+  const friends = await getAllFriends();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gray-900 bg-pixel-grid">
+      <div className="mx-auto max-w-xl px-4 py-16">
+        {/* Hero */}
+        <div className="mb-12 text-center">
+          <div className="mb-4 animate-float inline-block text-5xl">🕹️</div>
+          <h1 className="font-pixel text-xl leading-loose text-white">
+            GIFT CLAW
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 font-body text-gray-400">
+            AI-powered gift suggestions. Play a pixel claw machine to reveal
+            them
           </p>
+          <div className="mt-8">
+            <Link href="/friends/new">
+              <PixelButton className="bg-yellow-400 text-gray-900 hover:bg-yellow-300">
+                ✦ FIND A GIFT ✦
+              </PixelButton>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        {/* Recent Friends */}
+        {friends.length > 0 && (
+          <div>
+            <p className="mb-4 font-pixel text-[9px] uppercase tracking-widest text-gray-500">
+              Recent Profiles
+            </p>
+            <div className="space-y-3">
+              {friends.map((friend) => {
+                const themeKey = friend.theme as keyof typeof THEMES;
+                const theme = THEMES[themeKey] ?? THEMES.soft;
+                return (
+                  <Link key={friend.id} href={`/friends/${friend.id}`}>
+                    <PixelCard className="flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{theme.prize.emoji}</span>
+                        <div>
+                          <p className="font-pixel text-[10px] text-gray-900">
+                            {friend.name}
+                          </p>
+                          <p className="font-body text-xs text-gray-400">
+                            {theme.label}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-body text-xs text-gray-400">→</span>
+                    </PixelCard>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
