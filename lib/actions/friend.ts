@@ -13,6 +13,10 @@ export async function createFriend(formData: unknown) {
     };
   }
 
+  if (parsed.data._honeypot !== "") {
+    return { error: "BOT_DETECTED" };
+  }
+
   // 2. Save to DB
   const friend = await prisma.friend.create({
     data: {
