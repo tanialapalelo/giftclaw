@@ -49,6 +49,7 @@ export async function getGiftSuggestions(friendId: string) {
 
   const friendProfile: FriendProfile = {
     id: friend.id,
+    shareToken: friend.shareToken,
     name: friend.name,
     interests: friend.interests,
     hobbies: friend.hobbies,

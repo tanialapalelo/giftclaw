@@ -2,7 +2,7 @@
 
 > AI-powered gift finder wrapped in a retro arcade claw machine game.
 
-Tell us about your friend → AI suggests 8 personalized gifts → Play claw machine to reveal one → Share with your friend.
+Tell us about your friend → AI suggests 8 personalized gifts → Share the claw machine link → Your friend plays to reveal their gift!
 
 ![GiftClaw Banner](public/og-image.png)
 
@@ -10,12 +10,13 @@ Tell us about your friend → AI suggests 8 personalized gifts → Play claw mac
 
 ## ✨ Features
 
-- **AI Gift Suggestions** — Powered by Gemini 2.5 Flash, generates 8 personalized gift ideas based on your friend's interests, hobbies, budget, and dislikes
-- **Claw Machine Game** — Interactive arcade-style claw machine to reveal gift suggestions one by one
+- **AI Gift Suggestions** — Powered by Gemini 2.5 Flash, generates 8 personalized gift ideas based on interests, hobbies, budget, and dislikes
+- **Claw Machine Game** — Interactive arcade-style claw machine to reveal a gift suggestion
+- **Privacy by Design** — Gift giver's budget and notes are never exposed to the receiver. Two separate UUIDs: one private (`/friends/[id]`), one shareable (`/play/[shareToken]`)
 - **4 Themes** — Soft & Elegant 🌸, Bold & Cool ⚡, Cute & Playful 🧸, Classic Arcade 🎪
 - **Smart Caching** — AI results cached in DB, no repeat API calls for the same profile
 - **Rate Limiting** — Upstash Redis prevents API abuse (5 requests/min per IP)
-- **Shareable Profiles** — Each friend profile has a unique URL to share
+- **Recent Profiles** — localStorage remembers your last 5 profiles, no login required
 
 ---
 
@@ -46,7 +47,7 @@ Tell us about your friend → AI suggests 8 personalized gifts → Play claw mac
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-username/giftclaw.git
+git clone https://github.com/tanialapalelo/giftclaw.git
 cd giftclaw
 pnpm install
 ```
@@ -90,30 +91,40 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 giftclaw/
 ├── app/
 │   ├── page.tsx                    # Landing page + recent profiles
+│   ├── not-found.tsx               # Global 404
+│   ├── global-error.tsx            # Global error boundary
 │   ├── friends/
 │   │   ├── new/page.tsx            # Create friend profile form
 │   │   └── [id]/
-│   │       ├── page.tsx            # Friend profile page
+│   │       ├── page.tsx            # Friend profile + share button (gift giver only)
+│   │       ├── error.tsx
 │   │       ├── gifts/page.tsx      # AI gift suggestions list
-│   │       └── claw/page.tsx       # Claw machine game
+│   │       └── gifts/error.tsx
+│   └── play/
+│       └── [shareToken]/
+│           └── page.tsx            # Claw machine (receiver link, no sensitive data)
 ├── components/
 │   ├── claw-machine/
 │   │   ├── claw-game.tsx           # Main game component (client)
-│   │   ├── claw.tsx                # Animated claw component
+│   │   ├── claw.tsx                # Animated claw
 │   │   ├── machine-frame.tsx       # Arcade cabinet frame
 │   │   ├── prize-box.tsx           # Prize boxes
 │   │   └── reveal-panel.tsx        # Gift reveal UI
-│   └── ui/                         # Shared UI components
+│   ├── copy-link-button.tsx        # Copy /play/[shareToken] to clipboard
+│   ├── error-display.tsx           # Shared error UI
+│   ├── recent-profiles.tsx         # localStorage recent profiles
+│   └── ui/                         # Shared UI primitives
 ├── hooks/
 │   └── use-claw-game.ts            # Game state machine (useReducer)
 ├── lib/
 │   ├── actions/
-│   │   ├── friend.ts               # Friend CRUD server actions
+│   │   ├── friend.ts               # Friend CRUD + getFriendByShareToken
 │   │   └── gift.ts                 # AI gift suggestions + caching
 │   ├── gemini.ts                   # Google Gemini AI client
 │   ├── prisma.ts                   # Prisma client singleton
 │   ├── rate-limit.ts               # Upstash rate limiter
 │   ├── themes.ts                   # Theme definitions
+│   ├── utils.ts                    # isValidUUID + shared utilities
 │   └── validations.ts              # Zod schemas
 ├── prisma/
 │   ├── schema.prisma
@@ -127,32 +138,37 @@ giftclaw/
 ## 🎮 How It Works
 
 ```
-1. User fills friend profile form
+1. Gift giver fills friend profile form
    → Name, interests, hobbies, dislikes, budget, theme
 
-2. Server Action saves to PostgreSQL via Prisma
+2. Server Action saves to PostgreSQL
+   → Two UUIDs generated: id (private) + shareToken (shareable)
 
-3. On /gifts page:
-   → Check DB cache for existing suggestions
-   → If none: rate limit check → call Gemini AI → cache result
-   → Return 8 personalized gift ideas
+3. Gift giver visits /friends/[id]
+   → Sees full profile including budget & notes
+   → Copies /play/[shareToken] link to share with friend
 
-4. On /claw page:
-   → Shuffle gift order (different every visit)
-   → User controls claw with ◀ GRAB ▶ or keyboard arrows
+4. Receiver opens /play/[shareToken]
+   → Only sees name + claw machine, zero budget/notes
+   → Controls claw with ◀ GRAB ▶ or keyboard arrows
    → Claw drops, grabs prize, lifts up
    → Reveal panel shows the gift suggestion
 
-5. Share the profile URL with your friend!
+5. AI generation (lazy, on first visit to /gifts or /play):
+   → Rate limit check (5 req/min/IP via Upstash)
+   → Call Gemini AI → cache result in DB
+   → Subsequent visits use cached result
 ```
 
 ---
 
-## 🔒 Abuse Protection
+## 🔒 Privacy & Security
 
+- **Two UUID model** — `id` (private, gift giver only) and `shareToken` (receiver link). Receiver cannot reverse-engineer the private URL.
+- **Field-level select** — `getFriendByShareToken` only returns `name`, `theme`, `shareToken` — budget and notes never leave the server for receiver requests.
 - **Rate limiting** — 5 AI requests per IP per minute via Upstash Redis sliding window
 - **Input validation** — Zod schema validates all form inputs server-side
-- **DB caching** — Same profile never calls AI twice, cached indefinitely
+- **UUID guard** — All `[id]` routes validate UUID format before hitting DB
 
 ---
 
