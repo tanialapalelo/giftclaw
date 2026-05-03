@@ -23,15 +23,17 @@ export default async function FriendPage({
     <PixelLayout theme={theme}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <p className="font-pixel text-[8px] uppercase tracking-widest text-gray-500">
-            Gift Profile
-          </p>
-          <h1 className="mt-2 font-pixel text-lg text-gray-900">
-            {friend.name}
-          </h1>
-          <p className="mt-1 font-body text-sm text-gray-500">{theme.label}</p>
-        </div>
+        <p
+          className={`font-pixel text-[8px] uppercase tracking-widest ${theme.text.secondary}`}
+        >
+          Gift Profile
+        </p>
+        <h1 className={`mt-2 font-pixel text-lg ${theme.text.primary}`}>
+          {friend.name}
+        </h1>
+        <p className={`mt-1 font-body text-sm ${theme.text.secondary}`}>
+          {theme.label}
+        </p>
 
         {/* Profile Card */}
         <PixelCard>

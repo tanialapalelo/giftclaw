@@ -42,17 +42,19 @@ export async function analyzeGifts(friend: FriendProfile) {
       ? `Rp${friend.budgetMin.toLocaleString()} - Rp${friend.budgetMax.toLocaleString()}`
       : "flexible";
 
-  const prompt = `Analyze this person's profile and suggest 5 gift ideas.
+  const prompt = `Analyze this person's profile and suggest 8 gift ideas.
 
 Profile:
 - Name: ${friend.name}
 - Interests: ${friend.interests.join(", ")}
-- Hobbies: ${friend.hobbies.join(", ")}
-- Dislikes: ${friend.dislikes.join(", ")}
+- Hobbies: ${friend.hobbies.join(", ") || "not specified"}
+- Dislikes: ${friend.dislikes.join(", ") || "none"}
 - Budget: ${budget}
-- Notes: ${friend.notes ?? "none"}
+- Notes: ${friend.notes || "none"}
 
-Give practical, specific gifts available in Southeast Asia.`;
+Suggest 8 thoughtful, specific, varied gifts across different categories.
+Each should feel personal, not generic. Mix practical and fun gifts.
+Price range should be in IDR format.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",

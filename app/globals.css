@@ -1,143 +1,136 @@
 @import "tailwindcss";
 
-/* ===== CUSTOM FONTS ===== */
 @theme {
-  --font-pixel: var(--font-pixel), monospace;
-  --font-body: var(--font-body), sans-serif;
+    --font-pixel: var(--font-pixel), monospace;
+    --font-body: var(--font-body), sans-serif;
 }
 
 /* ===== PIXEL ART CORE ===== */
-
 .pixel-render {
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 .pixel-border {
-  box-shadow:
-    -4px 0 0 0 currentColor,
-    4px 0 0 0 currentColor,
-    0 -4px 0 0 currentColor,
-    0 4px 0 0 currentColor,
-    -4px -4px 0 0 currentColor,
-    4px -4px 0 0 currentColor,
-    -4px 4px 0 0 currentColor,
-    4px 4px 0 0 currentColor;
+    box-shadow:
+            -4px 0 0 0 currentColor,
+            4px 0 0 0 currentColor,
+            0 -4px 0 0 currentColor,
+            0  4px 0 0 currentColor;
 }
 
+/* ===== CRT OVERLAY ===== */
 .crt-overlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 10;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.04) 2px,
+            rgba(0, 0, 0, 0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ===== NEON GLOW EFFECTS ===== */
+.neon-pink {
+    box-shadow:
+            0 0 8px #ff69b4,
+            0 0 16px #ff69b4,
+            0 0 32px #ff69b4,
+            inset 0 0 8px rgba(255, 105, 180, 0.1);
+}
+.neon-cyan {
+    box-shadow:
+            0 0 8px #00e5ff,
+            0 0 16px #00e5ff,
+            0 0 32px #00e5ff,
+            inset 0 0 8px rgba(0, 229, 255, 0.1);
+}
+.neon-purple {
+    box-shadow:
+            0 0 8px #c084fc,
+            0 0 16px #c084fc,
+            0 0 32px #c084fc,
+            inset 0 0 8px rgba(192, 132, 252, 0.1);
+}
+.neon-yellow {
+    box-shadow:
+            0 0 8px #facc15,
+            0 0 16px #facc15,
+            0 0 32px #facc15,
+            inset 0 0 8px rgba(250, 204, 21, 0.1);
+}
+
+/* ===== MACHINE GLASS EFFECT ===== */
+/* Efek kaca transparan seperti claw machine asli */
+.machine-glass {
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.15) 0%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.05) 100%
+    );
+    pointer-events: none;
 }
 
 /* ===== PIXEL BACKGROUNDS ===== */
-
 .bg-pixel-stars {
-  background-image:
-    radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-    radial-gradient(
-      2px 2px at 40px 70px,
-      rgba(255, 255, 255, 0.8),
-      transparent
-    ),
-    radial-gradient(2px 2px at 90px 40px, #fff, transparent),
-    radial-gradient(
-      2px 2px at 130px 80px,
-      rgba(255, 255, 255, 0.6),
-      transparent
-    ),
-    radial-gradient(2px 2px at 160px 30px, #fff, transparent);
-  background-size: 200px 100px;
+    background-image:
+            radial-gradient(1px 1px at 10% 15%, white, transparent),
+            radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.8), transparent),
+            radial-gradient(2px 2px at 50% 20%, white, transparent),
+            radial-gradient(1px 1px at 75% 60%, rgba(255,255,255,0.6), transparent),
+            radial-gradient(2px 2px at 90% 35%, white, transparent),
+            radial-gradient(1px 1px at 35% 75%, rgba(255,255,255,0.7), transparent),
+            radial-gradient(1px 1px at 60% 85%, white, transparent),
+            radial-gradient(2px 2px at 80% 90%, rgba(255,255,255,0.5), transparent);
+    background-size: 300px 200px;
 }
-
 .bg-pixel-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 16px 16px;
+    background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
 }
-
 .bg-pixel-check {
-  background-image:
-    linear-gradient(45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%);
-  background-size: 16px 16px;
-  background-position:
-    0 0,
-    0 8px,
-    8px -8px,
-    -8px 0px;
+    background-image:
+            linear-gradient(45deg, rgba(0,0,0,0.04) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(0,0,0,0.04) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.04) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.04) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
 }
 
 /* ===== ANIMATIONS ===== */
-
 @keyframes poof {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(0);
-    opacity: 0;
-  }
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.8); opacity: 0.7; }
+    100% { transform: scale(0); opacity: 0; }
 }
-
 @keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-5px); }
 }
-
 @keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+@keyframes neon-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.75; }
 }
 
-.animate-poof {
-  animation: poof 0.4s ease-out forwards;
-}
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
-}
-.animate-float {
-  animation: float 2s ease-in-out infinite;
-}
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
+.animate-poof     { animation: poof 0.45s ease-out forwards; }
+.animate-fade-in  { animation: fade-in 0.35s ease-out forwards; }
+.animate-float    { animation: float 2.5s ease-in-out infinite; }
+.animate-blink    { animation: blink 1s step-end infinite; }
+.animate-neon     { animation: neon-pulse 2s ease-in-out infinite; }

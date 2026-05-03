@@ -1,4 +1,3 @@
-// lib/actions/gift.ts
 "use server";
 
 import { prisma } from "@/lib/prisma";

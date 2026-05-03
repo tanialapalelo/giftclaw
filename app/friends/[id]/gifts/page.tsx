@@ -31,7 +31,7 @@ export default async function GiftsPage({
           <p className="font-pixel text-[8px] uppercase tracking-widest text-gray-500">
             AI Gift Ideas for
           </p>
-          <h1 className="mt-2 font-pixel text-lg text-gray-900">
+          <h1 className={`mt-1 font-pixel text-base ${theme.text.primary}`}>
             {friend.name}
           </h1>
           {result.cached && (
