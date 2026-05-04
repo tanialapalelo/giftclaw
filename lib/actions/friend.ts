@@ -89,6 +89,6 @@ export async function getFriendByShareToken(shareToken: string) {
     });
     return friend;
   } catch (error) {
-    console.error("Error fetching friend by share token:", error);
+    return null;
   }
 }
