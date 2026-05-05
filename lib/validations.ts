@@ -22,10 +22,10 @@ export const friendSchema = z
 
     dislikes: z.array(sanitizedTag).max(10, "Maximum 10 dislikes").default([]),
 
-    budgetMin: z.number().int().positive().max(100_000_000).nullable(),
-    budgetMax: z.number().int().positive().max(100_000_000).nullable(),
+    budgetMin: z.number().int().positive().max(100_000_000).nullish(),
+    budgetMax: z.number().int().positive().max(100_000_000).nullish(),
 
-    notes: sanitizedString(500).nullable(),
+    notes: sanitizedString(500).nullish(),
 
     theme: z.enum(["soft", "bold", "cute", "classic"]).default("soft"),
 
@@ -35,14 +35,14 @@ export const friendSchema = z
   // Cross-field validation — butuh .superRefine di object level
   .superRefine((data, ctx) => {
     if (
-      data.budgetMin !== null &&
-      data.budgetMax !== null &&
+      data.budgetMin != null && // != null covers both null AND undefined
+      data.budgetMax != null &&
       data.budgetMin > data.budgetMax
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Min budget cannot exceed max budget",
-        path: ["budgetMin"], // error attach ke field budgetMin
+        path: ["budgetMin"],
       });
     }
   });

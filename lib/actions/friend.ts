@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { friendSchema } from "@/lib/validations";
+import { isValidUUID } from "@/lib/utils";
 
 export async function createFriend(formData: unknown) {
   // 1. Validate
@@ -42,6 +43,7 @@ export async function createFriend(formData: unknown) {
 }
 
 export async function getFriend(id: string) {
+  if (!isValidUUID(id)) return null;
   try {
     const friend = await prisma.friend.findUnique({
       where: { id },
@@ -57,23 +59,6 @@ export async function getFriend(id: string) {
   } catch {
     return null;
   }
-}
-
-export async function getAllFriends() {
-  const friends = await prisma.friend.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      theme: true,
-      createdAt: true,
-    },
-  });
-
-  return friends.map((f) => ({
-    ...f,
-    createdAt: f.createdAt.toISOString(),
-  }));
 }
 
 export async function getFriendByShareToken(shareToken: string) {
