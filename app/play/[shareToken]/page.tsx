@@ -3,9 +3,9 @@ import { getFriendByShareToken } from "@/lib/actions/friend";
 import { getGiftSuggestions } from "@/lib/actions/gift";
 import { THEMES } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
-import { ClawGame } from "@/components/claw-machine/claw-game";
 import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
+import { PlayClient } from "@/components/play-client";
 
 export default async function PlayPage({
   params,
@@ -31,11 +31,6 @@ export default async function PlayPage({
             COULD NOT LOAD GIFTS
           </p>
           <p className="font-body text-sm text-red-500">{result.error}</p>
-          {"remaining" in result && (
-            <p className="font-pixel text-[8px] text-red-400">
-              TOO MANY REQUESTS — TRY AGAIN IN A MINUTE
-            </p>
-          )}
         </div>
       </PixelLayout>
     );
@@ -43,27 +38,11 @@ export default async function PlayPage({
 
   return (
     <PixelLayout theme={theme}>
-      <div className="space-y-6">
-        {/* Receiver header — zero sensitive data */}
-        <div className="text-center space-y-1">
-          <p
-            className={`font-pixel text-[8px] uppercase tracking-widest ${theme.text.secondary}`}
-          >
-            A GIFT WAS PREPARED FOR
-          </p>
-          <h1 className={`font-pixel text-lg ${theme.text.primary}`}>
-            {friend.name} 🎁
-          </h1>
-          <p className={`font-body text-xs ${theme.text.secondary}`}>
-            Play the claw machine to reveal your gift!
-          </p>
-        </div>
-
-        <ClawGame
-          gifts={result.suggestions as GiftSuggestion[]}
-          theme={theme}
-        />
-      </div>
+      <PlayClient
+        friend={friend}
+        theme={theme}
+        gifts={result.suggestions as GiftSuggestion[]}
+      />
     </PixelLayout>
   );
 }

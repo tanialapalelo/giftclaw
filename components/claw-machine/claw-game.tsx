@@ -6,9 +6,12 @@ import { MachineFrame } from "./machine-frame";
 import { Claw } from "./claw";
 import { PrizeBox } from "./prize-box";
 import { RevealPanel } from "./reveal-panel";
+import { GrabHistory } from "@/components/grab-history";
 import { PixelButton } from "@/components/ui/pixel-button";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
+
+const MAX_ATTEMPTS = 3;
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -28,6 +31,10 @@ export function ClawGame({
 }) {
   const [shuffleKey, setShuffleKey] = useState(0);
 
+  const [grabHistory, setGrabHistory] = useState<GiftSuggestion[]>([]);
+
+  const [showHistory, setShowHistory] = useState(false);
+
   const shuffledGifts = useMemo(
     () => shuffleArray(gifts),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -38,9 +45,34 @@ export function ClawGame({
     useClawGame(shuffledGifts);
   const { phase, clawX, clawY, targetX, grabbedPrize } = state;
 
+  const currentGift =
+    grabbedPrize !== null ? shuffledGifts[grabbedPrize] : null;
+
+  const isHoldingPrize = phase === "grabbing" || phase === "lifting";
+  const heldEmoji =
+    isHoldingPrize && grabbedPrize !== null
+      ? theme.prize.altEmojis[grabbedPrize % theme.prize.altEmojis.length]
+      : null;
+
+  const currentAttempt = grabHistory.length + 1;
+  const canTryAgain = grabHistory.length < MAX_ATTEMPTS - 1;
+
   const handleReset = () => {
+    if (currentGift) {
+      setGrabHistory((prev) => [...prev, currentGift]);
+    }
     reset();
     setShuffleKey((k) => k + 1);
+  };
+
+  const handleViewPicks = () => {
+    if (currentGift) {
+      setGrabHistory((prev) => {
+        const alreadySaved = prev.includes(currentGift);
+        return alreadySaved ? prev : [...prev, currentGift];
+      });
+    }
+    setShowHistory(true);
   };
 
   useEffect(() => {
@@ -56,19 +88,60 @@ export function ClawGame({
     return () => window.removeEventListener("keydown", handleKey);
   }, [moveLeft, moveRight, grab]);
 
-  const currentGift =
-    grabbedPrize !== null ? shuffledGifts[grabbedPrize] : null;
-
-  // Prize ikut claw saat grabbing + lifting
-  // Saat dropping belum grab, jadi belum bawa prize
-  const isHoldingPrize = phase === "grabbing" || phase === "lifting";
-  const heldEmoji =
-    isHoldingPrize && grabbedPrize !== null
-      ? theme.prize.altEmojis[grabbedPrize % theme.prize.altEmojis.length]
-      : null;
+  if (showHistory) {
+    return <GrabHistory history={grabHistory} theme={theme} />;
+  }
 
   return (
     <div className="space-y-4">
+      {/* Phase + attempt indicator */}
+      <div className="flex items-center justify-between px-1 h-6">
+        <span className={`font-pixel text-[7px] ${theme.text.secondary}`}>
+          ATTEMPT {currentAttempt}/{MAX_ATTEMPTS}
+        </span>
+
+        <div className="h-6 flex items-center">
+          {phase === "moving" && (
+            <p
+              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
+            >
+              ◄ MOVE THE CLAW ►
+            </p>
+          )}
+          {phase === "dropping" && (
+            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
+              ↓ DROPPING...
+            </p>
+          )}
+          {phase === "grabbing" && (
+            <p
+              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
+            >
+              ✦ GRABBING!
+            </p>
+          )}
+          {phase === "lifting" && (
+            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
+              ↑ LIFTING...
+            </p>
+          )}
+        </div>
+
+        {/* Dots indicator — berapa kali sudah grab */}
+        <div className="flex gap-1">
+          {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 w-2 rounded-full transition-colors ${
+                i < grabHistory.length
+                  ? theme.controls.grab // sudah dipakai
+                  : "bg-white/20" // belum dipakai
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
       <MachineFrame theme={theme}>
         {/* Rail */}
         <div
@@ -80,19 +153,16 @@ export function ClawGame({
           targetX={targetX}
           y={clawY}
           phase={phase}
-          // Pass emoji prize ke claw saat holding
-          // null saat belum grab atau sudah reveal
           heldEmoji={isHoldingPrize ? heldEmoji : null}
           theme={theme}
         />
 
-        {/* Prize Boxes di floor */}
         {/* Prize Boxes */}
         <div className="absolute bottom-8 left-0 right-0 flex items-end justify-around px-2">
           {shuffledGifts.map((_, i) => (
             <PrizeBox
               key={i}
-              index={i} // ← tambah ini
+              index={i}
               isLifted={isHoldingPrize && grabbedPrize === i}
               theme={theme}
             />
@@ -107,7 +177,15 @@ export function ClawGame({
 
       {/* Reveal Panel */}
       {phase === "result" && currentGift && (
-        <RevealPanel gift={currentGift} onReset={handleReset} theme={theme} />
+        <RevealPanel
+          gift={currentGift}
+          onReset={handleReset}
+          onViewPicks={handleViewPicks}
+          canTryAgain={canTryAgain}
+          attemptNumber={currentAttempt}
+          maxAttempts={MAX_ATTEMPTS}
+          theme={theme}
+        />
       )}
 
       {/* Controls */}

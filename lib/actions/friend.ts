@@ -70,6 +70,8 @@ export async function getFriendByShareToken(shareToken: string) {
         name: true,
         theme: true,
         shareToken: true,
+        interests: true,
+        hobbies: true,
       },
     });
     return friend;
