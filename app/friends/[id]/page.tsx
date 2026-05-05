@@ -95,6 +95,13 @@ export default async function FriendPage({
               🎁 SEE GIFT IDEAS
             </PixelButton>
           </Link>
+
+          {/* Edit button — tambah ini */}
+          <Link href={`/friends/${id}/edit`} className="block">
+            <PixelButton className={`w-full ${theme.machine.frame} text-white`}>
+              ✏️ EDIT PROFILE
+            </PixelButton>
+          </Link>
         </div>
 
         {/* Back */}

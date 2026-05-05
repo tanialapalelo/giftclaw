@@ -52,11 +52,7 @@ export function GrabHistory({
               >
                 {gift.name}
               </p>
-              <p
-                className={`font-body text-xs leading-relaxed ${theme.text.secondary}`}
-              >
-                {gift.reason}
-              </p>
+
               <span
                 className={`
                 inline-block rounded-full px-2 py-0.5
