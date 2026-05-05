@@ -6,7 +6,11 @@ import { PixelButton } from "@/components/ui/pixel-button";
 export const dynamic = "force-dynamic";
 
 async function getTotalCount() {
-  return prisma.friend.count();
+  try {
+    return await prisma.friend.count();
+  } catch {
+    return 0;
+  }
 }
 
 export default async function HomePage() {
