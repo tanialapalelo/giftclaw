@@ -42,6 +42,7 @@ export default async function PlayPage({
         friend={friend}
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}
+        friendId={friend.id}
       />
     </PixelLayout>
   );

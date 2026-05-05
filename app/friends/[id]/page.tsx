@@ -7,6 +7,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelButton } from "@/components/ui/pixel-button";
 import { isValidUUID } from "@/lib/utils";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { getGameResultsForFriend } from "@/lib/actions/game";
 
 export default async function FriendPage({
   params,
@@ -18,8 +19,10 @@ export default async function FriendPage({
   if (!isValidUUID(id)) notFound();
 
   const friend = await getFriend(id);
-
   if (!friend) notFound();
+
+  const gameResults = await getGameResultsForFriend(friend.id);
+  const hasResults = gameResults && gameResults.length > 0;
 
   const themeKey = friend.theme as keyof typeof THEMES;
   const theme = THEMES[themeKey] ?? THEMES.soft;
@@ -87,6 +90,72 @@ export default async function FriendPage({
           </p>
           <CopyLinkButton path={`/play/${friend.shareToken}`} />
         </div>
+
+        {hasResults && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <p
+                className={`font-pixel text-[8px] tracking-widest ${theme.text.secondary}`}
+              >
+                {friend.name.toUpperCase()} HAS PLAYED
+              </p>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
+            <p
+              className={`font-body text-xs text-center ${theme.text.secondary}`}
+            >
+              {friend.name} grabbed {gameResults.length} gift
+              {gameResults.length > 1 ? "s" : ""} — here's what to buy:
+            </p>
+
+            {gameResults.map((result, i) => (
+              <div
+                key={result.id}
+                className={`rounded-lg border-2 p-4 space-y-1 ${theme.prize.box}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`font-pixel text-[7px] ${theme.text.secondary}`}
+                  >
+                    GRAB {result.grabIndex}
+                  </span>
+                </div>
+
+                <p
+                  className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
+                >
+                  {result.giftSnapshot.name}
+                </p>
+                <p className={`font-body text-xs ${theme.text.secondary}`}>
+                  {result.giftSnapshot.reason}
+                </p>
+                <span
+                  className={`
+          inline-block rounded-full px-2 py-0.5
+          font-body text-[10px] bg-black/10 ${theme.text.secondary}
+        `}
+                >
+                  {result.giftSnapshot.category}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!hasResults && (
+          <div
+            className={`rounded border p-4 text-center space-y-1 border-dashed ${theme.text.secondary}`}
+          >
+            <p className="font-pixel text-[8px]">
+              WAITING FOR {friend.name.toUpperCase()} TO PLAY
+            </p>
+            <p className="font-body text-xs">
+              Share the link above — results will appear here
+            </p>
+          </div>
+        )}
 
         {/* CTA */}
         <div className="space-y-3">

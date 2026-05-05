@@ -1,5 +1,6 @@
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
+import { getVibeFromGift } from "@/lib/vibe";
 
 export function RevealPanel({
   gift,
@@ -18,9 +19,10 @@ export function RevealPanel({
   maxAttempts: number; // 3
   theme: Theme;
 }) {
+  const vibe = getVibeFromGift(gift);
   return (
     <div
-      className={`animate-fade-in p-6 text-center space-y-3 ${theme.reveal.bg}`}
+      className={`animate-fade-in p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}
     >
       {/* Attempt counter */}
       <p
@@ -29,29 +31,35 @@ export function RevealPanel({
         ATTEMPT {attemptNumber} / {maxAttempts}
       </p>
 
-      <p
-        className={`font-pixel text-[8px] uppercase tracking-widest ${theme.reveal.subtitle}`}
-      >
-        You got...
-      </p>
+      <div className="text-6xl animate-float">{vibe.emoji}</div>
 
-      <h3
-        className={`font-pixel text-[11px] leading-loose ${theme.reveal.title}`}
-      >
-        {gift.name}
-      </h3>
-
-      <div className="flex items-center justify-center gap-2">
-        <span
-          className={`rounded-full px-3 py-1 font-body text-xs ${theme.reveal.badge} bg-black/10`}
+      <div className="space-y-2">
+        <p
+          className={`font-pixel text-[8px] uppercase tracking-widest ${theme.reveal.subtitle}`}
         >
-          {gift.category}
-        </span>
+          YOUR GIFT VIBE
+        </p>
+        <p
+          className={`font-body text-sm leading-relaxed max-w-xs mx-auto ${theme.reveal.title}`}
+        >
+          "{vibe.tagline}"
+        </p>
+      </div>
+
+      {/* Mood tags */}
+      <div className="flex items-center justify-center gap-2">
+        {vibe.moodTags.map((tag) => (
+          <span
+            key={tag}
+            className={`rounded-full px-3 py-1 font-body text-xs bg-black/10 ${theme.reveal.badge}`}
+          >
+            {tag}
+          </span>
+        ))}
       </div>
 
       {/* Buttons */}
       <div className="flex items-center justify-center gap-3 pt-2">
-        {/* TRY AGAIN — if still have attempts */}
         {canTryAgain && (
           <button
             onClick={onReset}
@@ -60,13 +68,11 @@ export function RevealPanel({
             ↻ TRY AGAIN
           </button>
         )}
-
-        {/* SEE MY PICKS */}
         <button
           onClick={onViewPicks}
           className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform ${theme.reveal.button}`}
         >
-          {canTryAgain ? "★ SEE PICKS" : "★ SEE ALL PICKS"}
+          {canTryAgain ? "★ SEE MY VIBES" : "★ SEE ALL VIBES"}
         </button>
       </div>
     </div>

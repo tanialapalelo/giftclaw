@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useClawGame } from "@/hooks/use-claw-game";
 import { MachineFrame } from "./machine-frame";
 import { Claw } from "./claw";
@@ -10,6 +10,7 @@ import { GrabHistory } from "@/components/grab-history";
 import { PixelButton } from "@/components/ui/pixel-button";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
+import { saveGameResult } from "@/lib/actions/gift";
 
 const MAX_ATTEMPTS = 3;
 
@@ -25,10 +26,13 @@ function shuffleArray<T>(arr: T[]): T[] {
 export function ClawGame({
   gifts,
   theme,
+  friendId,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
+  friendId: string;
 }) {
+  const sessionId = useRef(crypto.randomUUID());
   const [shuffleKey, setShuffleKey] = useState(0);
 
   const [grabHistory, setGrabHistory] = useState<GiftSuggestion[]>([]);
@@ -57,19 +61,36 @@ export function ClawGame({
   const currentAttempt = grabHistory.length + 1;
   const canTryAgain = grabHistory.length < MAX_ATTEMPTS - 1;
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (currentGift) {
-      setGrabHistory((prev) => [...prev, currentGift]);
+      const newHistory = [...grabHistory, currentGift];
+      setGrabHistory(newHistory);
+
+      await saveGameResult({
+        friendId,
+        sessionId: sessionId.current,
+        grabIndex: newHistory.length,
+        giftSnapshot: currentGift,
+      });
     }
     reset();
     setShuffleKey((k) => k + 1);
   };
 
-  const handleViewPicks = () => {
+  const handleViewPicks = async () => {
     if (currentGift) {
-      setGrabHistory((prev) => {
-        const alreadySaved = prev.includes(currentGift);
-        return alreadySaved ? prev : [...prev, currentGift];
+      const newHistory = grabHistory.includes(currentGift)
+        ? grabHistory
+        : [...grabHistory, currentGift];
+
+      setGrabHistory(newHistory);
+
+      const grabIndex = newHistory.length;
+      await saveGameResult({
+        friendId,
+        sessionId: sessionId.current,
+        grabIndex,
+        giftSnapshot: currentGift,
       });
     }
     setShowHistory(true);

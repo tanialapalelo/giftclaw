@@ -6,6 +6,7 @@ import { analyzeGifts } from "@/lib/gemini";
 import { rateLimiter } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
+import { isValidUUID } from "@/lib/utils";
 
 export async function getGiftSuggestions(friendId: string) {
   // 1. cache check
@@ -102,5 +103,33 @@ export async function getGiftSuggestions(friendId: string) {
     });
 
     return { error: "Failed to generate gift suggestions. Please try again." };
+  }
+}
+export async function saveGameResult({
+  friendId,
+  sessionId,
+  grabIndex,
+  giftSnapshot,
+}: {
+  friendId: string;
+  sessionId: string;
+  grabIndex: number;
+  giftSnapshot: object;
+}) {
+  if (!isValidUUID(friendId) || !isValidUUID(sessionId))
+    return { error: "Invalid ID" };
+
+  try {
+    await prisma.gameResult.create({
+      data: {
+        friendId,
+        sessionId,
+        grabIndex,
+        giftSnapshot,
+      },
+    });
+    return { success: true };
+  } catch {
+    return { error: "Failed to save result" };
   }
 }

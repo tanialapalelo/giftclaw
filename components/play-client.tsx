@@ -10,6 +10,7 @@ export function PlayClient({
   friend,
   theme,
   gifts,
+  friendId,
 }: {
   friend: {
     name: string;
@@ -18,6 +19,7 @@ export function PlayClient({
   };
   theme: Theme;
   gifts: GiftSuggestion[];
+  friendId: string;
 }) {
   const [gameStarted, setGameStarted] = useState(false);
 
@@ -41,7 +43,7 @@ export function PlayClient({
               Play the claw machine to reveal your gift!
             </p>
           </div>
-          <ClawGame gifts={gifts} theme={theme} />
+          <ClawGame gifts={gifts} theme={theme} friendId={friendId} />
         </>
       )}
     </div>

@@ -1,3 +1,4 @@
+import { getVibeFromGift } from "@/lib/vibe";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 
@@ -9,68 +10,68 @@ export function GrabHistory({
   theme: Theme;
 }) {
   return (
-    <div className="animate-fade-in space-y-4">
-      {/* Header */}
-      <div className="text-center space-y-1">
+    <div className="animate-fade-in space-y-4 text-center">
+      <div className="space-y-1">
         <p
           className={`font-pixel text-[8px] tracking-widest ${theme.text.secondary}`}
         >
-          YOUR PICKS
+          YOUR GIFT VIBES
         </p>
         <h2 className={`font-pixel text-base ${theme.text.primary}`}>
-          ★ {history.length} GIFT{history.length > 1 ? "S" : ""} REVEALED ★
+          ★ {history.length} VIBE{history.length > 1 ? "S" : ""} REVEALED ★
         </h2>
         <p className={`font-body text-xs ${theme.text.secondary}`}>
-          Screenshot this and share it — let them pick one!
+          Your gift-giver can see these — get ready to be surprised! 🎁
         </p>
       </div>
 
-      {/* Gift cards */}
       <div className="space-y-3">
-        {history.map((gift, i) => (
-          <div
-            key={i}
-            className={`
-              flex items-start gap-4 rounded-lg border-2 p-4
-              ${theme.prize.box}
-            `}
-          >
-            {/* Attempt number badge */}
+        {history.map((gift, i) => {
+          const vibe = getVibeFromGift(gift);
+          return (
             <div
-              className={`
-              flex h-8 w-8 shrink-0 items-center justify-center
-              rounded-full font-pixel text-[9px]
-              ${theme.reveal.bg} ${theme.reveal.title}
-            `}
+              key={i}
+              className={`flex items-center gap-4 rounded-lg border-2 p-4 ${theme.prize.box}`}
             >
-              {i + 1}
-            </div>
-
-            <div className="flex-1 space-y-1">
-              <p
-                className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
-              >
-                {gift.name}
-              </p>
-
-              <span
+              {/* Number badge */}
+              <div
                 className={`
-                inline-block rounded-full px-2 py-0.5
-                font-body text-[10px] bg-black/10 ${theme.text.secondary}
+                flex h-8 w-8 shrink-0 items-center justify-center
+                rounded-full font-pixel text-[9px]
+                ${theme.reveal.bg} ${theme.reveal.title}
               `}
               >
-                {gift.category}
-              </span>
+                {i + 1}
+              </div>
+
+              {/* Vibe emoji */}
+              <div className="text-3xl">{vibe.emoji}</div>
+
+              {/* Vibe info */}
+              <div className="flex-1 text-left space-y-1">
+                <p
+                  className={`font-body text-xs leading-relaxed ${theme.text.primary}`}
+                >
+                  "{vibe.tagline}"
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {vibe.moodTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`rounded-full px-2 py-0.5 font-body text-[10px] bg-black/10 ${theme.text.secondary}`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Footer note */}
-      <p
-        className={`text-center font-pixel text-[7px] ${theme.text.secondary}`}
-      >
-        REFRESH TO PLAY AGAIN FROM SCRATCH
+      <p className={`font-pixel text-[7px] ${theme.text.secondary}`}>
+        YOUR GIFT-GIVER WILL SEE WHAT TO BUY — STAY SURPRISED ✦
       </p>
     </div>
   );

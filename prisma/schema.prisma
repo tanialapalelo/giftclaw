@@ -14,7 +14,7 @@ datasource db {
 
 model Friend {
   id          String   @id @default(uuid()) @db.Uuid
-  shareToken  String   @unique @default(uuid()) @db.Uuid @map("share_token")
+  shareToken  String   @unique @default(uuid()) @map("share_token") @db.Uuid
   name        String
   interests   String[]
   hobbies     String[]
@@ -28,6 +28,7 @@ model Friend {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   giftSuggestions GiftSuggestion[]
+  gameResults     GameResult[]
 
   @@map("friends")
 }
@@ -42,4 +43,17 @@ model GiftSuggestion {
   friend Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
 
   @@map("gift_suggestions")
+}
+
+model GameResult {
+  id           String   @id @default(uuid()) @db.Uuid
+  friendId     String   @map("friend_id") @db.Uuid
+  sessionId    String   @map("session_id") @db.Uuid
+  grabIndex    Int      @map("grab_index")
+  giftSnapshot Json     @map("gift_snapshot")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  friend Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@map("game_results")
 }
