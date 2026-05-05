@@ -1,9 +1,9 @@
-// app/page.tsx
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { RecentProfiles } from "@/components/recent-profiles";
 import { PixelButton } from "@/components/ui/pixel-button";
+
+export const dynamic = "force-dynamic";
 
 async function getTotalCount() {
   return prisma.friend.count();
@@ -14,12 +14,11 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-950 bg-pixel-grid overflow-hidden">
-      {/* Scanline overlay seluruh halaman — subtle CRT feel */}
+      {/* Scanline overlay all page — subtle CRT feel */}
       <div className="pointer-events-none fixed inset-0 z-50 crt-overlay opacity-30" />
 
       <div className="relative mx-auto max-w-lg px-4 py-12">
         {/* ── MARQUEE TICKER ── */}
-        {/* Arcade machine selalu ada running text di atas */}
         <div className="mb-8 overflow-hidden border border-yellow-400/30 bg-yellow-400/5 py-2">
           <p className="animate-marquee whitespace-nowrap font-pixel text-[8px] text-yellow-400">
             ★ INSERT COIN TO PLAY &nbsp;&nbsp;&nbsp; ★ AI POWERED GIFT FINDER
@@ -42,7 +41,7 @@ export default async function HomePage() {
             */}
             <div className="animate-float inline-block text-6xl">🕹️</div>
 
-            {/* Pixel sparkles di sekitar icon */}
+            {/* Pixel sparkles around icon */}
             <span className="absolute -top-2 -right-2 animate-blink font-pixel text-[8px] text-yellow-400">
               ✦
             </span>
