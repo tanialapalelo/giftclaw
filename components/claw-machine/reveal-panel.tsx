@@ -41,10 +41,6 @@ export function RevealPanel({
         {gift.name}
       </h3>
 
-      <p className={`font-body text-sm ${theme.reveal.subtitle}`}>
-        {gift.reason}
-      </p>
-
       <div className="flex items-center justify-center gap-2">
         <span
           className={`rounded-full px-3 py-1 font-body text-xs ${theme.reveal.badge} bg-black/10`}

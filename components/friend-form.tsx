@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createFriend } from "@/lib/actions/friend";
+import { createFriend, updateFriend } from "@/lib/actions/friend";
 import { saveProfileToLocalStorage } from "@/components/recent-profiles";
 import { ThemePicker } from "@/components/theme-picker";
 import { PixelButton } from "@/components/ui/pixel-button";
@@ -22,7 +22,6 @@ function TagInput({
   onRemove: (index: number) => void;
 }) {
   const [input, setInput] = useState("");
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === "Enter" || e.key === ",") && input.trim()) {
       e.preventDefault();
@@ -30,7 +29,6 @@ function TagInput({
       setInput("");
     }
   };
-
   return (
     <div>
       <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
@@ -68,14 +66,35 @@ function TagInput({
   );
 }
 
-export function FriendForm() {
+export function FriendForm({
+  initialData,
+  friendId,
+}: {
+  initialData?: {
+    name: string;
+    interests: string[];
+    hobbies: string[];
+    dislikes: string[];
+    budgetMin: number | null;
+    budgetMax: number | null;
+    notes: string | null;
+    theme: ThemeKey;
+  };
+  friendId?: string;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [theme, setTheme] = useState<ThemeKey>("soft");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [hobbies, setHobbies] = useState<string[]>([]);
-  const [dislikes, setDislikes] = useState<string[]>([]);
+  const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "soft");
+  const [interests, setInterests] = useState<string[]>(
+    initialData?.interests ?? []
+  );
+  const [hobbies, setHobbies] = useState<string[]>(initialData?.hobbies ?? []);
+  const [dislikes, setDislikes] = useState<string[]>(
+    initialData?.dislikes ?? []
+  );
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+
+  const isEditMode = !!friendId;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,20 +117,25 @@ export function FriendForm() {
     };
 
     startTransition(async () => {
-      const result = await createFriend(data);
+      // Edit mode → updateFriend, Create mode → createFriend
+      const result = isEditMode
+        ? await updateFriend(friendId, data)
+        : await createFriend(data);
 
       if ("error" in result) {
         setErrors(result.error as Record<string, string[]>);
         return;
       }
 
-      saveProfileToLocalStorage({
-        id: result.id,
-        shareToken: result.shareToken,
-        name: result.name,
-        theme: result.theme,
-        createdAt: new Date().toISOString(),
-      });
+      if (!isEditMode) {
+        saveProfileToLocalStorage({
+          id: result.id,
+          shareToken: result.shareToken,
+          name: result.name,
+          theme: result.theme,
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       router.push(`/friends/${result.id}`);
     });
@@ -131,6 +155,7 @@ export function FriendForm() {
           name="name"
           type="text"
           placeholder="e.g. Sarah"
+          defaultValue={initialData?.name ?? ""}
           className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
         />
         {errors.name && (
@@ -186,6 +211,7 @@ export function FriendForm() {
             placeholder="Min e.g. 100000"
             min={0}
             max={100000000}
+            defaultValue={initialData?.budgetMin ?? ""}
             className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
           />
           <span className="font-body text-gray-400">—</span>
@@ -195,14 +221,10 @@ export function FriendForm() {
             placeholder="Max e.g. 500000"
             min={0}
             max={100000000}
+            defaultValue={initialData?.budgetMax ?? ""}
             className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
           />
         </div>
-        {errors.budgetMin && (
-          <p className="mt-1 font-body text-xs text-red-500">
-            {errors.budgetMin[0]}
-          </p>
-        )}
       </div>
 
       <div>
@@ -213,6 +235,7 @@ export function FriendForm() {
           name="notes"
           rows={3}
           placeholder="e.g. She just got promoted, loves vintage aesthetic..."
+          defaultValue={initialData?.notes ?? ""}
           className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
         />
       </div>
@@ -224,8 +247,24 @@ export function FriendForm() {
         disabled={isPending}
         className="w-full bg-gray-900 text-white hover:bg-gray-700"
       >
-        {isPending ? "SAVING..." : "FIND GIFTS ✦"}
+        {isPending
+          ? isEditMode
+            ? "SAVING..."
+            : "SAVING..."
+          : isEditMode
+            ? "✦ SAVE & REGENERATE GIFTS"
+            : "FIND GIFTS ✦"}
       </PixelButton>
+
+      {isEditMode && (
+        <button
+          type="button"
+          onClick={() => router.push(`/friends/${friendId}`)}
+          className="w-full font-body text-sm text-gray-400 hover:text-gray-600"
+        >
+          ← Cancel
+        </button>
+      )}
     </form>
   );
 }
