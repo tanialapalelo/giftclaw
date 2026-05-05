@@ -1,5 +1,6 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import { prisma } from "@/lib/prisma";
 import { analyzeGifts } from "@/lib/gemini";
 import { rateLimiter } from "@/lib/rate-limit";
@@ -7,7 +8,7 @@ import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
 
 export async function getGiftSuggestions(friendId: string) {
-  // 1. Cek cache di DB dulu
+  // 1. cache check
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },
     orderBy: { createdAt: "desc" },
@@ -31,6 +32,12 @@ export async function getGiftSuggestions(friendId: string) {
   const { success, limit, remaining } = await rateLimiter.limit(ip);
 
   if (!success) {
+    Sentry.addBreadcrumb({
+      category: "rate-limit",
+      message: `Rate limit hit by IP: ${ip}`,
+      level: "warning",
+    });
+
     return {
       error: `Rate limit exceeded. Try again in a minute.`,
       limit,
@@ -38,7 +45,7 @@ export async function getGiftSuggestions(friendId: string) {
     };
   }
 
-  // 3. Ambil friend profile
+  // 3. get friend
   const friend = await prisma.friend.findUnique({
     where: { id: friendId },
   });
@@ -61,21 +68,39 @@ export async function getGiftSuggestions(friendId: string) {
     createdAt: friend.createdAt.toISOString(),
   };
 
-  // 4. Call Gemini AI
-  const result = await analyzeGifts(friendProfile);
+  // 4. Call Gemini — wrap dengan try/catch + Sentry
+  try {
+    const start = Date.now();
+    const result = await analyzeGifts(friendProfile);
+    const duration = Date.now() - start;
 
-  // 5. Simpan ke DB (cache)
-  await prisma.giftSuggestion.create({
-    data: {
-      friendId,
+    Sentry.addBreadcrumb({
+      category: "ai",
+      message: `Gemini call completed`,
+      data: { duration_ms: duration, friendId, cached: false },
+      level: "info",
+    });
+
+    // 5. Cache result
+    await prisma.giftSuggestion.create({
+      data: {
+        friendId,
+        suggestions: result.suggestions,
+        modelVersion: "gemini-2.5-flash",
+      },
+    });
+
+    return {
       suggestions: result.suggestions,
       modelVersion: "gemini-2.5-flash",
-    },
-  });
+      cached: false,
+    };
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { action: "getGiftSuggestions" },
+      extra: { friendId, friendName: friend.name },
+    });
 
-  return {
-    suggestions: result.suggestions,
-    modelVersion: "gemini-2.5-flash",
-    cached: false,
-  };
+    return { error: "Failed to generate gift suggestions. Please try again." };
+  }
 }
