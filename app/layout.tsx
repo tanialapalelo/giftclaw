@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Press_Start_2P, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const pixelFont = Press_Start_2P({
@@ -25,7 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${pixelFont.variable} ${bodyFont.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
