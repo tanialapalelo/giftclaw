@@ -8,8 +8,7 @@ import type { Theme } from "@/lib/themes";
 import type { GiftSuggestion } from "@/types";
 import type { GameResultWithGift } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
-
-const MAX_ATTEMPTS = 3;
+import { MAX_ATTEMPTS } from "@/lib/constants";
 
 function AlreadyPlayedView({
   results,

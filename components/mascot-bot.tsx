@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Theme } from "@/lib/themes";
 import type { GameResultWithGift } from "@/lib/actions/game";
 
@@ -39,7 +39,10 @@ export function MascotBot({
   theme: Theme;
   onDismiss: () => void;
 }) {
-  const messages = buildMessages(friendName, previousResults);
+  const messages = useMemo(
+    () => buildMessages(friendName, previousResults),
+    [friendName, previousResults]
+  );
   const [msgIndex, setMsgIndex] = useState(0);
   const [displayed, setDisplayed] = useState("");
   const [typing, setTyping] = useState(true);
@@ -59,8 +62,7 @@ export function MascotBot({
       }
     }, 28);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [msgIndex]);
+  }, [msgIndex, messages]);
 
   const handleNext = () => {
     if (typing) {

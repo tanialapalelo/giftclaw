@@ -11,8 +11,7 @@ import { PixelButton } from "@/components/ui/pixel-button";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 import { saveGameResult } from "@/lib/actions/gift";
-
-const MAX_ATTEMPTS = 3;
+import { MAX_ATTEMPTS } from "@/lib/constants";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -107,10 +106,15 @@ export function ClawGame({
 
   const handleViewPicks = async () => {
     if (currentGift) {
-      const newHistory = grabHistory.includes(currentGift)
+      const alreadySaved = grabHistory.some((h) => h.name === currentGift.name);
+      const newHistory = alreadySaved
         ? grabHistory
         : [...grabHistory, currentGift];
       setGrabHistory(newHistory);
+      if (alreadySaved) {
+        setShowHistory(true);
+        return;
+      }
       await saveGameResult({
         friendId,
         sessionId: sessionId.current,
@@ -208,7 +212,6 @@ export function ClawGame({
               key={gift.name}
               index={i}
               isLifted={lockedGrabIndex === i}
-              theme={theme}
             />
           ))}
         </div>
@@ -234,25 +237,34 @@ export function ClawGame({
 
       {/* Controls */}
       {phase !== "result" && (
-        <div className="flex items-center justify-center gap-3">
+        <div
+          className={`mx-auto flex w-fit items-center justify-center gap-3 px-6 py-3 rounded-2xl border-2 border-black/30 shadow-[0_4px_0_rgba(0,0,0,0.3)] ${theme.machine.controlPanel}`}
+        >
           <PixelButton
             onClick={moveLeft}
             disabled={phase !== "moving"}
-            className={`text-lg ${theme.controls.move}`}
+            className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
           >
             ◀
           </PixelButton>
-          <PixelButton
-            onClick={grab}
-            disabled={phase !== "moving"}
-            className={`px-8 ${theme.controls.grab} ${phase === "moving" ? "active:scale-90" : ""}`}
-          >
-            GRAB
-          </PixelButton>
+          <div className="flex flex-col items-center">
+            <PixelButton
+              onClick={grab}
+              disabled={phase !== "moving"}
+              className={`px-8 ${theme.controls.grab} ${phase === "moving" ? "active:scale-90" : ""} active:brightness-75 transition-all`}
+            >
+              GRAB
+            </PixelButton>
+            {phase === "moving" && (
+              <span className="font-pixel text-[8px] text-white/70 animate-blink mt-1">
+                ♪ SPACE
+              </span>
+            )}
+          </div>
           <PixelButton
             onClick={moveRight}
             disabled={phase !== "moving"}
-            className={`text-lg ${theme.controls.move}`}
+            className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
           >
             ▶
           </PixelButton>

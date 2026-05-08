@@ -7,8 +7,7 @@ import { PixelLayout } from "@/components/pixel-layout";
 import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
 import { PlayClient } from "@/components/play-client";
-
-const MAX_ATTEMPTS = 3;
+import { MAX_ATTEMPTS } from "@/lib/constants";
 
 export default async function PlayPage({
   params,

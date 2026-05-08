@@ -9,6 +9,8 @@ import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
 
 export async function getGiftSuggestions(friendId: string) {
+  if (!isValidUUID(friendId)) return { error: "Invalid ID" };
+
   // 1. cache check
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },

@@ -79,7 +79,7 @@ export async function getFriendByShareToken(shareToken: string) {
       },
     });
     return friend;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

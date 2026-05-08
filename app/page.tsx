@@ -17,13 +17,21 @@ export default async function HomePage() {
   const totalCount = await getTotalCount();
 
   return (
-    <div className="min-h-screen bg-gray-950 bg-pixel-grid overflow-hidden">
-      {/* Scanline overlay all page — subtle CRT feel */}
-      <div className="pointer-events-none fixed inset-0 z-50 crt-overlay opacity-30" />
+    <div className="min-h-screen bg-gray-950 bg-pixel-grid bg-pixel-stars overflow-hidden">
+      {/* Scanline overlay all page — CRT feel */}
+      <div className="pointer-events-none fixed inset-0 z-50 crt-overlay opacity-50" />
 
       <div className="relative mx-auto max-w-lg px-4 py-12">
+        {/* Floating pixel particles */}
+        <span className="pointer-events-none absolute top-6 left-4 font-pixel text-[10px] text-yellow-400 animate-blink" style={{ animationDelay: "0s" }}>✦</span>
+        <span className="pointer-events-none absolute top-20 right-6 font-pixel text-[8px] text-pink-400 animate-blink" style={{ animationDelay: "0.5s" }}>★</span>
+        <span className="pointer-events-none absolute top-40 left-8 font-pixel text-[8px] text-cyan-400 animate-blink" style={{ animationDelay: "1s" }}>◆</span>
+        <span className="pointer-events-none absolute top-64 right-10 font-pixel text-[10px] text-purple-400 animate-blink" style={{ animationDelay: "1.5s" }}>✦</span>
+        <span className="pointer-events-none absolute top-32 right-16 font-pixel text-[6px] text-yellow-300 animate-drift">★</span>
+        <span className="pointer-events-none absolute top-52 left-16 font-pixel text-[6px] text-pink-300 animate-drift" style={{ animationDelay: "1.2s" }}>◆</span>
+
         {/* ── MARQUEE TICKER ── */}
-        <div className="mb-8 overflow-hidden border border-yellow-400/30 bg-yellow-400/5 py-2">
+        <div className="mb-8 overflow-hidden rounded border border-yellow-400/50 bg-yellow-400/5 py-2 neon-yellow">
           <p className="animate-marquee whitespace-nowrap font-pixel text-[8px] text-yellow-400">
             ★ INSERT COIN TO PLAY &nbsp;&nbsp;&nbsp; ★ AI POWERED GIFT FINDER
             &nbsp;&nbsp;&nbsp; ★ 4 THEMES AVAILABLE &nbsp;&nbsp;&nbsp; ★ NO
@@ -88,7 +96,7 @@ export default async function HomePage() {
         {/* ── CTA ── */}
         <div className="mt-8 text-center">
           <Link href="/friends/new">
-            <PixelButton className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 px-12 py-4 text-sm">
+            <PixelButton className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 px-12 py-4 text-sm animate-glow-pulse">
               🕹️ &nbsp;FIND A GIFT
             </PixelButton>
           </Link>

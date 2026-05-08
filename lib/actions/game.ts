@@ -33,7 +33,7 @@ export async function getGameResultsForFriend(
     ]);
 
     return {
-      results: results.map((r) => ({
+      results: results.map((r: (typeof results)[number]) => ({
         id: r.id,
         sessionId: r.sessionId,
         grabIndex: r.grabIndex,

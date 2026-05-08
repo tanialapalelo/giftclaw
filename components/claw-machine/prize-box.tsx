@@ -1,5 +1,4 @@
 // components/claw-machine/prize-box.tsx
-import type { Theme } from "@/lib/themes";
 
 // Ribbon colors per index so each box looks unique
 const RIBBON_COLORS = [
@@ -24,7 +23,6 @@ export function PrizeBox({
 }: {
   isLifted: boolean;
   index: number;
-  theme: import("@/lib/themes").Theme; // kept for API compat, unused internally
 }) {
   const ribbon = RIBBON_COLORS[index % RIBBON_COLORS.length];
   const box = BOX_COLORS[index % BOX_COLORS.length];
@@ -33,8 +31,8 @@ export function PrizeBox({
     <div
       className={`
         relative flex flex-col items-center justify-end
-        animate-float transition-all duration-300
-        ${isLifted ? "opacity-0 scale-50 pointer-events-none" : "opacity-100 scale-100"}
+        animate-float
+        ${isLifted ? "opacity-0 scale-0 transition-all duration-150 pointer-events-none" : "opacity-100 scale-100 transition-all duration-300"}
       `}
       style={{ animationDelay: `${index * 0.3}s` }}
     >
@@ -61,7 +59,7 @@ export function PrizeBox({
 
       {/* Box body */}
       <div
-        className={`relative h-14 w-14 rounded border-4 shadow-[2px_2px_0_rgba(0,0,0,0.2)] ${box}`}
+        className={`relative h-14 w-14 rounded border-4 overflow-hidden shadow-[3px_3px_0_rgba(0,0,0,0.3),6px_6px_0_rgba(0,0,0,0.15)] ${box}`}
       >
         {/* Horizontal ribbon stripe */}
         <div
@@ -77,6 +75,8 @@ export function PrizeBox({
         <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-black/10 rounded-r" />
         {/* 3D depth — bottom edge */}
         <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-black/10 rounded-b" />
+        {/* Shimmer overlay (only when not lifted) */}
+        {!isLifted && <div className="absolute inset-0 animate-shimmer" />}
       </div>
     </div>
   );

@@ -36,59 +36,88 @@ export function RevealPanel({
   }, []);
 
   return (
-    <div
-      className={`animate-fade-in p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}
-    >
-      {/* Attempt counter */}
-      <p
-        className={`font-pixel text-[7px] tracking-widest ${theme.reveal.subtitle}`}
+    <div className="animate-slot-reveal">
+      {/* Zigzag top edge — ticket/receipt feel (uses same bg as reveal panel) */}
+      <div
+        className={`h-3 w-full -mb-px ${theme.reveal.bg}`}
+        style={{
+          clipPath:
+            "polygon(0 0, 4% 100%, 8% 0, 12% 100%, 16% 0, 20% 100%, 24% 0, 28% 100%, 32% 0, 36% 100%, 40% 0, 44% 100%, 48% 0, 52% 100%, 56% 0, 60% 100%, 64% 0, 68% 100%, 72% 0, 76% 100%, 80% 0, 84% 100%, 88% 0, 92% 100%, 96% 0, 100% 100%, 100% 0)",
+        }}
+      />
+      <div
+        className={`p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}
       >
-        ATTEMPT {attemptNumber} / {maxAttempts}
-      </p>
-
-      <div className="text-6xl animate-float">{vibe.emoji}</div>
-
-      <div className="space-y-2">
+        {/* Attempt counter */}
         <p
-          className={`font-pixel text-[8px] uppercase tracking-widest ${theme.reveal.subtitle}`}
+          className={`font-pixel text-[7px] tracking-widest ${theme.reveal.subtitle}`}
         >
-          YOUR GIFT VIBE
+          ATTEMPT {attemptNumber} / {maxAttempts}
         </p>
-        <p
-          className={`font-body text-sm leading-relaxed max-w-xs mx-auto ${theme.reveal.title}`}
-        >
-          "{vibe.tagline}"
-        </p>
-      </div>
 
-      {/* Mood tags */}
-      <div className="flex items-center justify-center gap-2">
-        {vibe.moodTags.map((tag) => (
-          <span
-            key={tag}
-            className={`rounded-full px-3 py-1 font-body text-xs bg-black/10 ${theme.reveal.badge}`}
+        {/* Emoji with sparkle burst */}
+        <div className="relative inline-block w-24 h-24">
+          <div className="absolute inset-0 flex items-center justify-center">
+            {["★", "✦", "◆", "✦", "★"].map((s, i) => (
+              <span
+                key={i}
+                className={`absolute font-pixel text-[10px] animate-blink opacity-70 ${theme.reveal.subtitle}`}
+                style={{
+                  transform: `rotate(${i * 72}deg) translateY(-40px)`,
+                  animationDelay: `${i * 0.15}s`,
+                }}
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center text-6xl animate-bounce-in">
+            {vibe.emoji}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p
+            className={`font-pixel text-[8px] uppercase tracking-widest ${theme.reveal.subtitle}`}
           >
-            {tag}
-          </span>
-        ))}
-      </div>
+            YOUR GIFT VIBE
+          </p>
+          <p
+            className={`font-body text-sm leading-relaxed max-w-xs mx-auto ${theme.reveal.title}`}
+          >
+            &ldquo;{vibe.tagline}&rdquo;
+          </p>
+        </div>
 
-      {/* Buttons */}
-      <div className="flex items-center justify-center gap-3 pt-2">
-        {canTryAgain && (
+        {/* Mood tags */}
+        <div className="flex items-center justify-center gap-2">
+          {vibe.moodTags.map((tag) => (
+            <span
+              key={tag}
+              className={`rounded-full px-3 py-1 font-body text-xs bg-black/10 ${theme.reveal.badge}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center justify-center gap-3 pt-2">
+          {canTryAgain && (
+            <button
+              onClick={onReset}
+              className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform bg-black/20 ${theme.reveal.title}`}
+            >
+              ↻ TRY AGAIN
+            </button>
+          )}
           <button
-            onClick={onReset}
-            className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform bg-black/20 ${theme.reveal.title}`}
+            onClick={onViewPicks}
+            className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform ${theme.reveal.button}`}
           >
-            ↻ TRY AGAIN
+            {canTryAgain ? "★ SEE MY VIBES" : "★ SEE ALL VIBES"}
           </button>
-        )}
-        <button
-          onClick={onViewPicks}
-          className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform ${theme.reveal.button}`}
-        >
-          {canTryAgain ? "★ SEE MY VIBES" : "★ SEE ALL VIBES"}
-        </button>
+        </div>
       </div>
     </div>
   );
