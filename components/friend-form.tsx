@@ -79,6 +79,7 @@ export function FriendForm({
     budgetMax: number | null;
     notes: string | null;
     theme: ThemeKey;
+    validUntil?: string | Date | null;
   };
   friendId?: string;
 }) {
@@ -93,6 +94,11 @@ export function FriendForm({
     initialData?.dislikes ?? []
   );
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [validUntil, setValidUntil] = useState<string>(
+    initialData?.validUntil
+      ? new Date(initialData.validUntil).toISOString().split("T")[0]
+      : ""
+  );
 
   const isEditMode = !!friendId;
 
@@ -113,6 +119,7 @@ export function FriendForm({
         : null,
       notes: (formData.get("notes") as string) || null,
       theme,
+      validUntil: validUntil || null,
       _honeypot: formData.get("_honeypot") as string,
     };
 
@@ -238,6 +245,26 @@ export function FriendForm({
           defaultValue={initialData?.notes ?? ""}
           className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
         />
+      </div>
+
+      <div>
+        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
+          Link Deadline{" "}
+          <span className="normal-case font-body text-gray-400">
+            (optional)
+          </span>
+        </label>
+        <input
+          type="date"
+          value={validUntil}
+          onChange={(e) => setValidUntil(e.target.value)}
+          min={new Date().toISOString().split("T")[0]}
+          className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+        />
+        <p className="mt-1 font-body text-[10px] text-gray-400">
+          After this date the link will be locked — set it for when you plan to
+          buy the gift
+        </p>
       </div>
 
       <ThemePicker value={theme} onChange={setTheme} />

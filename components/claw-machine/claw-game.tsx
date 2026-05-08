@@ -27,22 +27,35 @@ export function ClawGame({
   gifts,
   theme,
   friendId,
+  previousGrabCount = 0,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
   friendId: string;
+  previousGrabCount?: number;
 }) {
   const sessionId = useRef(crypto.randomUUID());
   const [shuffleKey, setShuffleKey] = useState(0);
-
   const [grabHistory, setGrabHistory] = useState<GiftSuggestion[]>([]);
-
   const [showHistory, setShowHistory] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  // Track which index is being grabbed — persists through "result" phase so box stays hidden
+  const [lockedGrabIndex, setLockedGrabIndex] = useState<number | null>(null);
+
+  const totalAttemptsSoFar = previousGrabCount + grabHistory.length;
+  const remainingAttempts = MAX_ATTEMPTS - totalAttemptsSoFar;
+
+  // Exclude already-grabbed gifts so they don't reappear
+  const availableGifts = useMemo(
+    () => gifts.filter((g) => !grabHistory.some((h) => h.name === g.name)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gifts, grabHistory]
+  );
 
   const shuffledGifts = useMemo(
-    () => shuffleArray(gifts),
+    () => shuffleArray(availableGifts),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [gifts, shuffleKey]
+    [availableGifts, shuffleKey]
   );
 
   const { state, moveLeft, moveRight, grab, reset } =
@@ -58,21 +71,36 @@ export function ClawGame({
       ? theme.prize.altEmojis[grabbedPrize % theme.prize.altEmojis.length]
       : null;
 
-  const currentAttempt = grabHistory.length + 1;
-  const canTryAgain = grabHistory.length < MAX_ATTEMPTS - 1;
+  const currentAttempt = totalAttemptsSoFar + 1;
+  const canTryAgain = totalAttemptsSoFar < MAX_ATTEMPTS - 1;
+
+  // Lock grabbed index as soon as dropping starts so it stays hidden through result phase
+  useEffect(() => {
+    if (phase === "dropping" && grabbedPrize !== null) {
+      setLockedGrabIndex(grabbedPrize);
+    }
+  }, [phase, grabbedPrize]);
+
+  // Screenshake on grab
+  useEffect(() => {
+    if (phase === "grabbing") {
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
+    }
+  }, [phase]);
 
   const handleReset = async () => {
     if (currentGift) {
       const newHistory = [...grabHistory, currentGift];
       setGrabHistory(newHistory);
-
       await saveGameResult({
         friendId,
         sessionId: sessionId.current,
-        grabIndex: newHistory.length,
+        grabIndex: previousGrabCount + newHistory.length,
         giftSnapshot: currentGift,
       });
     }
+    setLockedGrabIndex(null);
     reset();
     setShuffleKey((k) => k + 1);
   };
@@ -82,14 +110,11 @@ export function ClawGame({
       const newHistory = grabHistory.includes(currentGift)
         ? grabHistory
         : [...grabHistory, currentGift];
-
       setGrabHistory(newHistory);
-
-      const grabIndex = newHistory.length;
       await saveGameResult({
         friendId,
         sessionId: sessionId.current,
-        grabIndex,
+        grabIndex: previousGrabCount + newHistory.length,
         giftSnapshot: currentGift,
       });
     }
@@ -114,7 +139,7 @@ export function ClawGame({
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${shaking ? "animate-screenshake" : ""}`}>
       {/* Phase + attempt indicator */}
       <div className="flex items-center justify-between px-1 h-6">
         <span className={`font-pixel text-[7px] ${theme.text.secondary}`}>
@@ -148,22 +173,20 @@ export function ClawGame({
           )}
         </div>
 
-        {/* Dots indicator — berapa kali sudah grab */}
+        {/* Attempt dots */}
         <div className="flex gap-1">
           {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
             <div
               key={i}
               className={`h-2 w-2 rounded-full transition-colors ${
-                i < grabHistory.length
-                  ? theme.controls.grab // sudah dipakai
-                  : "bg-white/20" // belum dipakai
+                i < totalAttemptsSoFar ? theme.controls.grab : "bg-white/20"
               }`}
             />
           ))}
         </div>
       </div>
 
-      <MachineFrame theme={theme}>
+      <MachineFrame theme={theme} remainingAttempts={remainingAttempts}>
         {/* Rail */}
         <div
           className={`absolute left-0 right-0 top-0 h-2 ${theme.machine.rail}`}
@@ -179,12 +202,12 @@ export function ClawGame({
         />
 
         {/* Prize Boxes */}
-        <div className="absolute bottom-8 left-0 right-0 flex items-end justify-around px-2">
-          {shuffledGifts.map((_, i) => (
+        <div className="absolute bottom-8 left-10 right-0 flex items-end justify-around px-2">
+          {shuffledGifts.map((gift, i) => (
             <PrizeBox
-              key={i}
+              key={gift.name}
               index={i}
-              isLifted={isHoldingPrize && grabbedPrize === i}
+              isLifted={lockedGrabIndex === i}
               theme={theme}
             />
           ))}
@@ -222,7 +245,7 @@ export function ClawGame({
           <PixelButton
             onClick={grab}
             disabled={phase !== "moving"}
-            className={`px-8 ${theme.controls.grab}`}
+            className={`px-8 ${theme.controls.grab} ${phase === "moving" ? "active:scale-90" : ""}`}
           >
             GRAB
           </PixelButton>

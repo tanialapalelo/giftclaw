@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+import confetti from "canvas-confetti";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 import { getVibeFromGift } from "@/lib/vibe";
@@ -20,6 +24,17 @@ export function RevealPanel({
   theme: Theme;
 }) {
   const vibe = getVibeFromGift(gift);
+
+  // Fire confetti on reveal
+  useEffect(() => {
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#facc15", "#f472b6", "#34d399", "#60a5fa", "#c084fc"],
+    });
+  }, []);
+
   return (
     <div
       className={`animate-fade-in p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}

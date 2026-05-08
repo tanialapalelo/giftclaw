@@ -1,43 +1,83 @@
 // components/claw-machine/prize-box.tsx
 import type { Theme } from "@/lib/themes";
 
+// Ribbon colors per index so each box looks unique
+const RIBBON_COLORS = [
+  "bg-red-400",
+  "bg-yellow-400",
+  "bg-blue-400",
+  "bg-green-400",
+  "bg-purple-400",
+];
+
+const BOX_COLORS = [
+  "bg-red-100 border-red-400",
+  "bg-yellow-100 border-yellow-400",
+  "bg-sky-100 border-sky-400",
+  "bg-emerald-100 border-emerald-400",
+  "bg-purple-100 border-purple-400",
+];
+
 export function PrizeBox({
   isLifted,
   index,
-  theme,
 }: {
   isLifted: boolean;
-  index: number; // ← untuk pilih emoji berbeda per box
-  theme: Theme;
+  index: number;
+  theme: import("@/lib/themes").Theme; // kept for API compat, unused internally
 }) {
-  // Placeholder kosong saat prize dibawa claw naik
-  // Kenapa tidak display:none? justify-around akan redistribute spacing
-  // → box lain bergeser → visual glitch
-  if (isLifted) {
-    return <div className="h-16 w-14" />;
-  }
-
-  // Setiap box pakai emoji berbeda dari altEmojis
-  // index % length = cycling, tidak pernah out of bounds
-  const emoji = theme.prize.altEmojis[index % theme.prize.altEmojis.length];
+  const ribbon = RIBBON_COLORS[index % RIBBON_COLORS.length];
+  const box = BOX_COLORS[index % BOX_COLORS.length];
 
   return (
     <div
       className={`
-        relative flex h-16 w-14 flex-col items-center justify-center
-        rounded-lg border-4 text-2xl shadow-lg
-        animate-float
-        ${theme.prize.box}
+        relative flex flex-col items-center justify-end
+        animate-float transition-all duration-300
+        ${isLifted ? "opacity-0 scale-50 pointer-events-none" : "opacity-100 scale-100"}
       `}
-      style={{
-        // Tiap box punya delay float berbeda → tidak bergerak serentak
-        // Lebih hidup seperti prizes di dalam claw machine asli
-        animationDelay: `${index * 0.3}s`,
-      }}
+      style={{ animationDelay: `${index * 0.3}s` }}
     >
-      {/* Shine effect di pojok kiri atas box */}
-      <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white opacity-40" />
-      <span className="drop-shadow-md">{emoji}</span>
+      {/* Bow on top */}
+      <div className="relative flex items-end justify-center mb-0.5 w-14">
+        {/* Left loop */}
+        <div
+          className={`absolute left-1 bottom-0 h-4 w-4 rounded-full border-2 border-white/50 ${ribbon}`}
+          style={{
+            transform: "rotate(-30deg)",
+            transformOrigin: "bottom right",
+          }}
+        />
+        {/* Right loop */}
+        <div
+          className={`absolute right-1 bottom-0 h-4 w-4 rounded-full border-2 border-white/50 ${ribbon}`}
+          style={{ transform: "rotate(30deg)", transformOrigin: "bottom left" }}
+        />
+        {/* Center knot */}
+        <div
+          className={`relative z-10 h-3 w-3 rounded-full border-2 border-white/60 ${ribbon}`}
+        />
+      </div>
+
+      {/* Box body */}
+      <div
+        className={`relative h-14 w-14 rounded border-4 shadow-[2px_2px_0_rgba(0,0,0,0.2)] ${box}`}
+      >
+        {/* Horizontal ribbon stripe */}
+        <div
+          className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 ${ribbon} opacity-70`}
+        />
+        {/* Vertical ribbon stripe */}
+        <div
+          className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 ${ribbon} opacity-70`}
+        />
+        {/* Shine */}
+        <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white opacity-50" />
+        {/* 3D depth — right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-black/10 rounded-r" />
+        {/* 3D depth — bottom edge */}
+        <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-black/10 rounded-b" />
+      </div>
     </div>
   );
 }

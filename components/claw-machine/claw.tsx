@@ -25,10 +25,10 @@ export function Claw({
 
   return (
     <div
-      className="absolute top-0 flex flex-col items-center"
+      className={`absolute top-0 flex flex-col items-center ${phase === "moving" ? "animate-sway" : ""}`}
       style={{
         left: `${displayX}%`,
-        transform: "translateX(-50%)",
+        transform: phase === "moving" ? undefined : "translateX(-50%)",
         transition:
           phase === "dropping" || phase === "grabbing" || phase === "lifting"
             ? "left 0.7s ease"

@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 import { getFriendByShareToken } from "@/lib/actions/friend";
 import { getGiftSuggestions } from "@/lib/actions/gift";
+import { getGameResultsForFriend } from "@/lib/actions/game";
 import { THEMES } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
 import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
 import { PlayClient } from "@/components/play-client";
+
+const MAX_ATTEMPTS = 3;
 
 export default async function PlayPage({
   params,
@@ -20,6 +23,38 @@ export default async function PlayPage({
   if (!friend) notFound();
 
   const theme = THEMES[friend.theme as keyof typeof THEMES] ?? THEMES.soft;
+
+  // Check if link has expired
+  const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
+  const isExpired = validUntil !== null && new Date() > validUntil;
+
+  if (isExpired) {
+    return (
+      <PixelLayout theme={theme}>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+          <div className="text-5xl">🔒</div>
+          <p className={`font-pixel text-xs ${theme.text.primary}`}>
+            LINK EXPIRED
+          </p>
+          <p className={`font-body text-sm ${theme.text.secondary}`}>
+            This gift link closed on{" "}
+            {validUntil.toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+            .
+            <br />
+            The gift-giver has already locked in their purchase!
+          </p>
+        </div>
+      </PixelLayout>
+    );
+  }
+
+  const gameData = await getGameResultsForFriend(friend.id);
+  const alreadyPlayedCount = gameData?.totalCount ?? 0;
+  const previousResults = gameData?.results ?? null;
 
   const result = await getGiftSuggestions(friend.id);
 
@@ -43,6 +78,10 @@ export default async function PlayPage({
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}
         friendId={friend.id}
+        previousResults={previousResults}
+        alreadyPlayedCount={alreadyPlayedCount}
+        validUntil={validUntil?.toISOString() ?? null}
+        maxAttempts={MAX_ATTEMPTS}
       />
     </PixelLayout>
   );
