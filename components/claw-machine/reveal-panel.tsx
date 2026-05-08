@@ -14,25 +14,53 @@ export function RevealPanel({
   attemptNumber,
   maxAttempts,
   theme,
+  isLucky = false,
 }: {
   gift: GiftSuggestion;
   onReset: () => void;
   onViewPicks: () => void;
-  canTryAgain: boolean; // false if already attempt three times
-  attemptNumber: number; // 1, 2, or 3
-  maxAttempts: number; // 3
+  canTryAgain: boolean;
+  attemptNumber: number;
+  maxAttempts: number;
   theme: Theme;
+  isLucky?: boolean;
 }) {
   const vibe = getVibeFromGift(gift);
 
   // Fire confetti on reveal
   useEffect(() => {
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ["#facc15", "#f472b6", "#34d399", "#60a5fa", "#c084fc"],
-    });
+    if (isLucky) {
+      // Golden burst for lucky grab
+      confetti({
+        particleCount: 160,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ["#facc15", "#fbbf24", "#f59e0b", "#fcd34d", "#ffffff"],
+      });
+      setTimeout(() => {
+        confetti({
+          particleCount: 80,
+          spread: 120,
+          origin: { y: 0.4 },
+          angle: 60,
+          colors: ["#facc15", "#fbbf24", "#ff6b6b"],
+        });
+        confetti({
+          particleCount: 80,
+          spread: 120,
+          origin: { y: 0.4 },
+          angle: 120,
+          colors: ["#facc15", "#fbbf24", "#60a5fa"],
+        });
+      }, 300);
+    } else {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#facc15", "#f472b6", "#34d399", "#60a5fa", "#c084fc"],
+      });
+    }
   }, []);
 
   return (
@@ -48,6 +76,17 @@ export function RevealPanel({
       <div
         className={`p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}
       >
+        {/* Lucky grab banner */}
+        {isLucky && (
+          <div className="animate-bounce-in flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-4 py-1.5 mx-auto w-fit">
+            <span className="text-base">⭐</span>
+            <span className="font-pixel text-[8px] text-yellow-900 tracking-widest">
+              LUCKY GRAB!
+            </span>
+            <span className="text-base">⭐</span>
+          </div>
+        )}
+
         {/* Attempt counter */}
         <p
           className={`font-pixel text-[7px] tracking-widest ${theme.reveal.subtitle}`}

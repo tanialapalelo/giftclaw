@@ -12,10 +12,12 @@ export function MachineFrame({
   theme,
   children,
   remainingAttempts,
+  chutePercent = 11,
 }: {
   theme: Theme;
   children: React.ReactNode;
   remainingAttempts?: number;
+  chutePercent?: number;
 }) {
   const bulbColor = neonToBulb[theme.machine.neon] ?? "bg-white";
 
@@ -66,9 +68,10 @@ export function MachineFrame({
           <div className="absolute top-2 left-2 bottom-2 w-1 bg-gradient-to-b from-white/25 via-white/5 to-transparent rounded-full pointer-events-none z-30" />
 
           {/* ── DROP CHUTE (left wall) ── */}
+          {/* Width = chutePercent% so prize container can start at the same percentage */}
           <div
-            className={`absolute left-0 top-0 bottom-6 w-9 flex flex-col items-center justify-end pb-1 z-10 border-r-4 ${theme.machine.rail}`}
-            style={{ background: "rgba(0,0,0,0.45)" }}
+            className={`absolute left-0 top-0 bottom-6 flex flex-col items-center justify-end pb-1 z-10 border-r-4 ${theme.machine.rail}`}
+            style={{ width: `${chutePercent}%`, background: "rgba(0,0,0,0.45)" }}
           >
             <div className="flex flex-col items-center gap-0.5 mb-2">
               <div className="font-pixel text-[8px] text-white/60 animate-blink">

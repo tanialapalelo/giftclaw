@@ -27,9 +27,9 @@ type GameAction =
 
 const CLAW_STEP = 12;
 
-// Prize area starts at x=11% (after the 36px chute in 320px wide container ≈ 11%)
-// and spans to 100%. Prizes are arranged with justify-around inside that zone.
-const CHUTE_OFFSET = 11; // percent — left boundary of prize zone
+// Prize area starts at CHUTE_OFFSET% (matches the drop chute width).
+// Export so claw-game.tsx can align the prize container precisely.
+export const CHUTE_OFFSET = 11; // percent — left boundary of prize zone
 
 export function getPrizeX(index: number, total: number): number {
   const zoneWidth = 100 - CHUTE_OFFSET;
@@ -46,7 +46,7 @@ function reducer(state: GameState, action: GameAction): GameState {
       };
     case "MOVE_RIGHT":
       if (state.phase !== "moving") return state;
-      return { ...state, clawX: Math.min(92, state.clawX + CLAW_STEP) };
+      return { ...state, clawX: Math.min(95, state.clawX + CLAW_STEP) };
     case "DROP":
       if (state.phase !== "moving") return state;
       return {

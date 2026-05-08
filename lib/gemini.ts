@@ -17,7 +17,8 @@ const giftResponseSchema = {
           name: { type: Type.STRING, description: "Gift name" },
           reason: {
             type: Type.STRING,
-            description: "Why perfect for this person",
+            description:
+              "Why this gift is perfect for this person. Write 1-2 warm, personal sentences. Maximum 80 words. Do not use bullet points or line breaks.",
           },
           priceRange: {
             type: Type.STRING,

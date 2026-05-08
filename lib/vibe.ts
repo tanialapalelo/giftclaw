@@ -35,12 +35,8 @@ export function getVibeFromGift(gift: {
     "Music & Entertainment": ["joyful", "vibrant"],
   };
 
-  const tagline = `Something ${
-    gift.reason.toLowerCase().startsWith("she") ||
-    gift.reason.toLowerCase().startsWith("he")
-      ? "for someone who" + gift.reason.slice(gift.reason.indexOf(" ") + 1)
-      : "that speaks to " + gift.reason.toLowerCase()
-  }`.slice(0, 80); // max 80 chars
+  // Use the AI's reason directly as the tagline — length is controlled in the prompt.
+  const tagline = gift.reason;
 
   return {
     emoji: categoryEmoji[gift.category] ?? "🎁",

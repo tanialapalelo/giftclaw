@@ -1,14 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getVibeFromGift } from "@/lib/vibe";
+import { getGameResultsForFriend } from "@/lib/actions/game";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 
 export function GrabHistory({
-  history,
+  friendId,
+  localHistory,
   theme,
 }: {
-  history: GiftSuggestion[];
+  friendId: string;
+  /** In-memory grabs from this session — shown instantly then replaced with DB data */
+  localHistory: GiftSuggestion[];
   theme: Theme;
 }) {
+  const [history, setHistory] = useState<GiftSuggestion[]>(localHistory);
+
+  // Load all grabs for this friend from DB (includes previous sessions)
+  useEffect(() => {
+    getGameResultsForFriend(friendId).then((data) => {
+      if (data && data.results.length > 0) {
+        // Sort ascending by grabIndex so first grab = first card
+        const sorted = [...data.results].sort((a, b) => a.grabIndex - b.grabIndex);
+        setHistory(sorted.map((r) => r.giftSnapshot));
+      }
+    });
+  }, [friendId]);
   return (
     <div className="animate-fade-in space-y-4 text-center">
       <div className="space-y-1">

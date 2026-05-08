@@ -220,9 +220,6 @@ export default async function HomePage() {
           <p className="font-pixel text-[7px] text-gray-700">
             BUILT WITH ♥ FOR GIFTING SEASON
           </p>
-          <p className="font-pixel text-[7px] text-gray-700">
-            ASSETS BY KENNEY.NL (CC0)
-          </p>
         </div>
       </div>
     </div>

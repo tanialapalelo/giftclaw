@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useClawGame } from "@/hooks/use-claw-game";
+import { useClawGame, CHUTE_OFFSET } from "@/hooks/use-claw-game";
 import { MachineFrame } from "./machine-frame";
 import { Claw } from "./claw";
 import { PrizeBox } from "./prize-box";
@@ -41,6 +41,36 @@ export function ClawGame({
   // Track which index is being grabbed — persists through "result" phase so box stays hidden
   const [lockedGrabIndex, setLockedGrabIndex] = useState<number | null>(null);
 
+  // Lucky box: one randomly chosen gift name that triggers special celebration if grabbed.
+  // Fixed for the whole session so the player can aim for it across all 3 attempts.
+  const luckyGiftName = useRef<string | null>(null);
+  if (luckyGiftName.current === null && gifts.length > 0) {
+    const idx = Math.floor(Math.random() * gifts.length);
+    luckyGiftName.current = gifts[idx].name;
+  }
+  // Is the lucky box still in play (not yet grabbed)?
+  const luckyStillAvailable =
+    luckyGiftName.current !== null &&
+    !grabHistory.some((h) => h.name === luckyGiftName.current);
+
+  // Lucky gift's category — used as the hint icon on the box
+  const luckyGift = gifts.find((g) => g.name === luckyGiftName.current);
+  const luckyCategory = luckyGift?.category;
+
+  const CATEGORY_EMOJI: Record<string, string> = {
+    "Books & Stationery": "📚",
+    "Food & Drink": "🍜",
+    "Beauty & Self-care": "✨",
+    "Tech & Gadgets": "💻",
+    "Fashion & Accessories": "🎀",
+    "Experience & Activity": "🎪",
+    "Home & Living": "🏡",
+    "Art & Craft": "🎨",
+    "Sports & Fitness": "⚡",
+    "Music & Entertainment": "🎵",
+  };
+  const luckyEmoji = luckyCategory ? (CATEGORY_EMOJI[luckyCategory] ?? "🎁") : "🎁";
+
   const totalAttemptsSoFar = previousGrabCount + grabHistory.length;
   const remainingAttempts = MAX_ATTEMPTS - totalAttemptsSoFar;
 
@@ -63,6 +93,8 @@ export function ClawGame({
 
   const currentGift =
     grabbedPrize !== null ? shuffledGifts[grabbedPrize] : null;
+
+  const isCurrentGiftLucky = currentGift?.name === luckyGiftName.current;
 
   const isHoldingPrize = phase === "grabbing" || phase === "lifting";
   const heldEmoji =
@@ -88,40 +120,34 @@ export function ClawGame({
     }
   }, [phase]);
 
-  const handleReset = async () => {
-    if (currentGift) {
-      const newHistory = [...grabHistory, currentGift];
-      setGrabHistory(newHistory);
-      await saveGameResult({
+  // Auto-save to DB as soon as result is shown — ensures gift-giver sees it immediately
+  // without requiring the player to press any button.
+  const autoSavedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "result" && currentGift && !autoSavedRef.current) {
+      autoSavedRef.current = true;
+      const grabIndex = previousGrabCount + grabHistory.length + 1;
+      setGrabHistory((prev) => [...prev, currentGift]);
+      void saveGameResult({
         friendId,
         sessionId: sessionId.current,
-        grabIndex: previousGrabCount + newHistory.length,
+        grabIndex,
         giftSnapshot: currentGift,
       });
     }
+    if (phase === "moving") {
+      autoSavedRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, currentGift]);
+
+  const handleReset = () => {
     setLockedGrabIndex(null);
     reset();
     setShuffleKey((k) => k + 1);
   };
 
-  const handleViewPicks = async () => {
-    if (currentGift) {
-      const alreadySaved = grabHistory.some((h) => h.name === currentGift.name);
-      const newHistory = alreadySaved
-        ? grabHistory
-        : [...grabHistory, currentGift];
-      setGrabHistory(newHistory);
-      if (alreadySaved) {
-        setShowHistory(true);
-        return;
-      }
-      await saveGameResult({
-        friendId,
-        sessionId: sessionId.current,
-        grabIndex: previousGrabCount + newHistory.length,
-        giftSnapshot: currentGift,
-      });
-    }
+  const handleViewPicks = () => {
     setShowHistory(true);
   };
 
@@ -139,7 +165,7 @@ export function ClawGame({
   }, [moveLeft, moveRight, grab]);
 
   if (showHistory) {
-    return <GrabHistory history={grabHistory} theme={theme} />;
+    return <GrabHistory friendId={friendId} localHistory={grabHistory} theme={theme} />;
   }
 
   return (
@@ -190,7 +216,7 @@ export function ClawGame({
         </div>
       </div>
 
-      <MachineFrame theme={theme} remainingAttempts={remainingAttempts}>
+      <MachineFrame theme={theme} remainingAttempts={remainingAttempts} chutePercent={CHUTE_OFFSET}>
         {/* Rail */}
         <div
           className={`absolute left-0 right-0 top-0 h-2 ${theme.machine.rail}`}
@@ -205,13 +231,19 @@ export function ClawGame({
           theme={theme}
         />
 
-        {/* Prize Boxes */}
-        <div className="absolute bottom-8 left-10 right-0 flex items-end justify-around px-2">
+        {/* Prize Boxes — left offset matches chute width exactly so claw zones align */}
+        <div
+          className="absolute bottom-8 right-0 flex items-end justify-around"
+          style={{ left: `${CHUTE_OFFSET}%` }}
+        >
           {shuffledGifts.map((gift, i) => (
             <PrizeBox
               key={gift.name}
               index={i}
               isLifted={lockedGrabIndex === i}
+              luckyCategory={
+                gift.name === luckyGiftName.current ? luckyCategory : undefined
+              }
             />
           ))}
         </div>
@@ -232,7 +264,15 @@ export function ClawGame({
           attemptNumber={currentAttempt}
           maxAttempts={MAX_ATTEMPTS}
           theme={theme}
+          isLucky={isCurrentGiftLucky}
         />
+      )}
+
+      {/* Lucky box objective hint — shown while game is active and lucky box not yet grabbed */}
+      {phase !== "result" && luckyStillAvailable && (
+        <p className={`text-center font-pixel text-[7px] animate-blink ${theme.text.accent}`}>
+          {luckyEmoji} FIND THE MYSTERY GIFT BOX FOR A SURPRISE!
+        </p>
       )}
 
       {/* Controls */}
