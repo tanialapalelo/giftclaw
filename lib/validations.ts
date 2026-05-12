@@ -29,6 +29,8 @@ export const friendSchema = z
 
     theme: z.enum(["soft", "bold", "cute", "classic"]).default("soft"),
 
+    validUntil: z.string().nullable().optional(),
+
     // Honeypot — only bots will fill this field, zod validates that it's always an empty string
     _honeypot: z.string().max(0, "Bot detected").default(""),
   })

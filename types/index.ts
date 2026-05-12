@@ -17,6 +17,8 @@ export interface GiftSuggestion {
   reason: string;
   priceRange: string;
   category: string;
+  /** Single emoji that best represents this specific gift (AI-assigned, unique per gift) */
+  emoji?: string;
 }
 
 export interface GiftAnalysisResult {

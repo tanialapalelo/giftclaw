@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { GiftSuggestion } from "@/types";
 
 export type GamePhase =
+  | "idle"
   | "moving"
   | "dropping"
   | "grabbing"
@@ -27,21 +28,24 @@ type GameAction =
 
 const CLAW_STEP = 12;
 
-// Hitung posisi X center prize ke-i dalam flex justify-around
-// justify-around: gap | box | gap | box | gap
-// center box ke-i = ((2*i + 1) / (2*n)) * 100
+export const CHUTE_OFFSET = 11;
+
 export function getPrizeX(index: number, total: number): number {
-  return ((2 * index + 1) / (2 * total)) * 100;
+  const zoneWidth = 100 - CHUTE_OFFSET;
+  return CHUTE_OFFSET + ((2 * index + 1) / (2 * total)) * zoneWidth;
 }
 
 function reducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "MOVE_LEFT":
       if (state.phase !== "moving") return state;
-      return { ...state, clawX: Math.max(8, state.clawX - CLAW_STEP) };
+      return {
+        ...state,
+        clawX: Math.max(CHUTE_OFFSET, state.clawX - CLAW_STEP),
+      };
     case "MOVE_RIGHT":
       if (state.phase !== "moving") return state;
-      return { ...state, clawX: Math.min(92, state.clawX + CLAW_STEP) };
+      return { ...state, clawX: Math.min(95, state.clawX + CLAW_STEP) };
     case "DROP":
       if (state.phase !== "moving") return state;
       return {
@@ -54,7 +58,7 @@ function reducer(state: GameState, action: GameAction): GameState {
     case "GRAB":
       return { ...state, phase: "grabbing" };
     case "LIFT":
-      return { ...state, phase: "lifting", clawY: 0 };
+      return { ...state, phase: "lifting", clawY: 0, targetX: CHUTE_OFFSET };
     case "SHOW_RESULT":
       return { ...state, phase: "result" };
     case "RESET":
@@ -71,8 +75,8 @@ function reducer(state: GameState, action: GameAction): GameState {
 }
 
 export function useClawGame(gifts: GiftSuggestion[]) {
-  const middleIndex = Math.floor(gifts.length / 2);
-  const startX = gifts.length > 0 ? getPrizeX(middleIndex, gifts.length) : 50;
+  const startX =
+    gifts.length > 0 ? getPrizeX(0, gifts.length) : CHUTE_OFFSET + 10;
 
   const [state, dispatch] = useReducer(reducer, {
     phase: "moving",
@@ -82,36 +86,66 @@ export function useClawGame(gifts: GiftSuggestion[]) {
     grabbedPrize: null,
   });
 
-  // Saat gifts berubah (reshuffle setelah Try Again),
-  // reset posisi claw ke tengah susunan baru
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const clearTimeouts = () => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  };
+
+  const statePhaseRef = useRef(state.phase);
+  statePhaseRef.current = state.phase;
+
   useEffect(() => {
-    dispatch({ type: "RESET", startX });
+    if (statePhaseRef.current === "moving") {
+      dispatch({ type: "RESET", startX });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gifts]);
 
-  const grab = useCallback(() => {
-    if (state.phase !== "moving") return;
+  useEffect(() => {
+    return () => clearTimeouts();
+  }, []);
 
-    const prizeWidth = 100 / gifts.length;
-    const nearestIndex = Math.min(
-      gifts.length - 1,
-      Math.max(0, Math.floor(state.clawX / prizeWidth))
-    );
+  const grab = useCallback(
+    (explicitIndex?: number, exactX?: number) => {
+      if (state.phase !== "moving") return;
 
-    const prizeX = getPrizeX(nearestIndex, gifts.length);
+      let nearestIndex: number;
+      if (explicitIndex !== undefined) {
+        nearestIndex = Math.min(gifts.length - 1, Math.max(0, explicitIndex));
+      } else {
+        const zoneWidth = 100 - CHUTE_OFFSET;
+        const prizeWidth = zoneWidth / gifts.length;
+        nearestIndex = Math.min(
+          gifts.length - 1,
+          Math.max(0, Math.floor((state.clawX - CHUTE_OFFSET) / prizeWidth))
+        );
+      }
 
-    dispatch({ type: "DROP", targetX: prizeX, prizeIndex: nearestIndex });
-    setTimeout(() => dispatch({ type: "GRAB" }), 700);
-    setTimeout(() => dispatch({ type: "LIFT" }), 1100);
-    setTimeout(() => dispatch({ type: "SHOW_RESULT" }), 1900);
-  }, [state.phase, state.clawX, gifts.length]);
+      // Use exactX (actual visual box position) if provided,
+      // otherwise fall back to mathematical column centre.
+      const prizeX =
+        exactX !== undefined ? exactX : getPrizeX(nearestIndex, gifts.length);
+
+      dispatch({ type: "DROP", targetX: prizeX, prizeIndex: nearestIndex });
+      clearTimeouts();
+      timeoutsRef.current = [
+        setTimeout(() => dispatch({ type: "GRAB" }), 700),
+        setTimeout(() => dispatch({ type: "LIFT" }), 1100),
+        setTimeout(() => dispatch({ type: "SHOW_RESULT" }), 1900),
+      ];
+    },
+    [state.phase, state.clawX, gifts.length]
+  );
 
   return {
     state,
     moveLeft: () => dispatch({ type: "MOVE_LEFT" }),
     moveRight: () => dispatch({ type: "MOVE_RIGHT" }),
     grab,
-    reset: (newStartX?: number) =>
-      dispatch({ type: "RESET", startX: newStartX ?? startX }),
+    reset: (newStartX?: number) => {
+      clearTimeouts();
+      dispatch({ type: "RESET", startX: newStartX ?? startX });
+    },
   };
 }

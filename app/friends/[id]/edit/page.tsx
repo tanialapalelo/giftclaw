@@ -18,13 +18,13 @@ export default async function EditFriendPage({
   if (!friend) notFound();
 
   return (
-    <div className="min-h-screen bg-gray-50 bg-pixel-check px-4 py-12">
+    <div className="min-h-screen bg-gray-950 bg-pixel-grid px-4 py-12">
       <div className="mx-auto max-w-xl">
         <div className="mb-8 text-center">
-          <h1 className="font-pixel text-sm leading-loose text-gray-900">
+          <h1 className="font-pixel text-sm leading-loose text-yellow-400">
             EDIT PROFILE
           </h1>
-          <p className="mt-2 font-body text-gray-500">
+          <p className="mt-2 font-body text-gray-400">
             Update {friend.name}&apos;s details — gifts will regenerate
             automatically 🎁
           </p>
@@ -42,6 +42,7 @@ export default async function EditFriendPage({
               budgetMax: friend.budgetMax,
               notes: friend.notes,
               theme: friend.theme as ThemeKey,
+              validUntil: friend.validUntil,
             }}
           />
         </PixelCard>
