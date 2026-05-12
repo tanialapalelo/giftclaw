@@ -13,7 +13,7 @@ const eslintConfig = [
   ...compat.extends(
     "next/core-web-vitals",
     "next/typescript",
-    "prettier" // ← harus paling terakhir, matikan rules yang konflik
+    "prettier" // must be last — disables rules that conflict with Prettier
   ),
   {
     rules: {
@@ -25,8 +25,8 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "warn",
 
       // React
-      "react/self-closing-comp": "warn", // <div></div> → <div />
-      "prefer-const": "error", // jangan pakai let kalau tidak di-reassign
+      "react/self-closing-comp": "warn",
+      "prefer-const": "error", // disallow let when variable is never reassigned
     },
   },
 ];
