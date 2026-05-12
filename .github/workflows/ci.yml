@@ -37,12 +37,6 @@ jobs:
 
       - name: Unit tests
         run: pnpm test
-        env:
-          # Unit tests mock DB/Redis; these are placeholder values for CI
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/giftclaw_test
-          GEMINI_API_KEY: placeholder
-          UPSTASH_REDIS_REST_URL: https://placeholder.upstash.io
-          UPSTASH_REDIS_REST_TOKEN: placeholder
 
   build:
     name: Build check

@@ -51,6 +51,7 @@ describe("getFriend", () => {
       notes: null,
       theme: "soft",
       editPinHash: null,
+      validUntil: null,
       createdAt: mockDate,
       updatedAt: mockDate,
     });
