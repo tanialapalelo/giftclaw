@@ -6,7 +6,7 @@ import { friendSchema } from "@/lib/validations";
 import { isValidUUID } from "@/lib/utils";
 
 export async function createFriend(formData: unknown) {
-  // 1. Validate
+  // Validate and sanitize input via Zod schema
   const parsed = friendSchema.safeParse(formData);
   if (!parsed.success) {
     return {
@@ -18,7 +18,7 @@ export async function createFriend(formData: unknown) {
     return { error: "BOT_DETECTED" };
   }
 
-  // 2. Save to DB
+  // Persist to DB
   const friend = await prisma.friend.create({
     data: {
       name: parsed.data.name,

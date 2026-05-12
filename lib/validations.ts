@@ -34,7 +34,7 @@ export const friendSchema = z
     // Honeypot — only bots will fill this field, zod validates that it's always an empty string
     _honeypot: z.string().max(0, "Bot detected").default(""),
   })
-  // Cross-field validation — butuh .superRefine di object level
+  // Cross-field validation — requires .superRefine at the object level
   .superRefine((data, ctx) => {
     if (
       data.budgetMin != null && // != null covers both null AND undefined

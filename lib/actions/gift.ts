@@ -7,11 +7,12 @@ import { rateLimiter } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
+import type { GiftSuggestion } from "@/types";
 
 export async function getGiftSuggestions(friendId: string) {
   if (!isValidUUID(friendId)) return { error: "Invalid ID" };
 
-  // 1. cache check
+  // Return cached result if one exists — avoids redundant Gemini calls
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },
     orderBy: { createdAt: "desc" },
@@ -19,13 +20,14 @@ export async function getGiftSuggestions(friendId: string) {
 
   if (cached) {
     return {
-      suggestions: cached.suggestions as any,
+      // Prisma stores Json as JsonValue; double-cast through unknown is the safe pattern
+      suggestions: cached.suggestions as unknown as GiftSuggestion[],
       modelVersion: cached.modelVersion,
       cached: true,
     };
   }
 
-  // 2. Rate limit check per IP
+  // Rate-limit per IP before hitting the Gemini API
   const headersList = await headers();
   const ip =
     headersList.get("x-forwarded-for")?.split(",")[0] ??
@@ -48,7 +50,7 @@ export async function getGiftSuggestions(friendId: string) {
     };
   }
 
-  // 3. get friend
+  // Fetch the friend profile needed to build the Gemini prompt
   const friend = await prisma.friend.findUnique({
     where: { id: friendId },
   });
@@ -71,7 +73,7 @@ export async function getGiftSuggestions(friendId: string) {
     createdAt: friend.createdAt.toISOString(),
   };
 
-  // 4. Call Gemini — wrap dengan try/catch + Sentry
+  // Call Gemini — wrapped in try/catch so API errors degrade gracefully
   try {
     const start = Date.now();
     const result = await analyzeGifts(friendProfile);
@@ -84,7 +86,7 @@ export async function getGiftSuggestions(friendId: string) {
       level: "info",
     });
 
-    // 5. Cache result
+    // Persist result so subsequent loads hit the cache instead of Gemini
     await prisma.giftSuggestion.create({
       data: {
         friendId,
@@ -94,7 +96,7 @@ export async function getGiftSuggestions(friendId: string) {
     });
 
     return {
-      suggestions: result.suggestions,
+      suggestions: result.suggestions as GiftSuggestion[],
       modelVersion: "gemini-2.5-flash",
       cached: false,
     };
@@ -107,6 +109,7 @@ export async function getGiftSuggestions(friendId: string) {
     return { error: "Failed to generate gift suggestions. Please try again." };
   }
 }
+
 export async function saveGameResult({
   friendId,
   sessionId,

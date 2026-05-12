@@ -33,10 +33,11 @@ export async function getGameResultsForFriend(
     ]);
 
     return {
-      results: results.map((r: (typeof results)[number]) => ({
+      results: results.map((r) => ({
         id: r.id,
         sessionId: r.sessionId,
         grabIndex: r.grabIndex,
+        // Prisma Json fields come back as JsonValue; cast through unknown to our typed interface
         giftSnapshot: r.giftSnapshot as unknown as GiftSuggestion,
         createdAt: r.createdAt.toISOString(),
       })),

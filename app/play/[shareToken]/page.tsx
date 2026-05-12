@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getFriendByShareToken } from "@/lib/actions/friend";
 import { getGiftSuggestions } from "@/lib/actions/gift";
 import { getGameResultsForFriend } from "@/lib/actions/game";
@@ -8,6 +9,26 @@ import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
 import { PlayClient } from "@/components/play-client";
 import { MAX_ATTEMPTS } from "@/lib/constants";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ shareToken: string }>;
+}): Promise<Metadata> {
+  const { shareToken } = await params;
+  if (!isValidUUID(shareToken)) return {};
+  const friend = await getFriendByShareToken(shareToken);
+  if (!friend) return {};
+  return {
+    title: `Play for ${friend.name}`,
+    description: `Someone prepared a surprise gift for ${friend.name}. Play the claw machine to reveal it!`,
+    openGraph: {
+      title: `🎁 A gift surprise for ${friend.name}!`,
+      description: `Play the claw machine to reveal what gift was chosen for you.`,
+    },
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function PlayPage({
   params,
