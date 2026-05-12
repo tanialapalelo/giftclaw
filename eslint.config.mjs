@@ -1,21 +1,20 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import js from "@eslint/js";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-config-prettier";
 
 const eslintConfig = [
-  ...compat.extends(
-    "next/core-web-vitals",
-    "next/typescript",
-    "prettier" // must be last — disables rules that conflict with Prettier
-  ),
+  js.configs.recommended,
+
+  ...tseslint.configs.recommended,
+
+  ...nextVitals,
+
+  prettier,
+
   {
+    ignores: [".next/**", "node_modules/**", "coverage/**", "dist/**"],
+
     rules: {
       // TypeScript
       "@typescript-eslint/no-unused-vars": [
@@ -26,7 +25,20 @@ const eslintConfig = [
 
       // React
       "react/self-closing-comp": "warn",
-      "prefer-const": "error", // disallow let when variable is never reassigned
+
+      // Disable overly aggressive React Compiler rules
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/static-components": "off",
+
+      // Optional
+      "react-hooks/exhaustive-deps": "warn",
+
+      // JSX entities
+      "react/no-unescaped-entities": "off",
+
+      // JS
+      "prefer-const": "error",
     },
   },
 ];

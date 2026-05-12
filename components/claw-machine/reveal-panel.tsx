@@ -8,8 +8,8 @@ import { getVibeFromGift } from "@/lib/vibe";
 
 export function RevealPanel({
   gift,
-  onReset,
-  onViewPicks,
+  onResetAction,
+  onViewPicksAction,
   canTryAgain,
   attemptNumber,
   maxAttempts,
@@ -17,8 +17,8 @@ export function RevealPanel({
   isLucky = false,
 }: {
   gift: GiftSuggestion;
-  onReset: () => void;
-  onViewPicks: () => void;
+  onResetAction: () => void;
+  onViewPicksAction: () => void;
   canTryAgain: boolean;
   attemptNumber: number;
   maxAttempts: number;
@@ -61,7 +61,7 @@ export function RevealPanel({
         colors: ["#facc15", "#f472b6", "#34d399", "#60a5fa", "#c084fc"],
       });
     }
-  }, []);
+  }, [isLucky]);
 
   return (
     <div className="animate-slot-reveal">
@@ -149,14 +149,14 @@ export function RevealPanel({
         <div className="flex items-center justify-center gap-3 pt-2">
           {canTryAgain && (
             <button
-              onClick={onReset}
+              onClick={onResetAction}
               className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform bg-black/20 ${theme.reveal.title}`}
             >
               ↻ TRY AGAIN
             </button>
           )}
           <button
-            onClick={onViewPicks}
+            onClick={onViewPicksAction}
             className={`rounded-full px-6 py-3 font-pixel text-[10px] active:scale-95 transition-transform ${theme.reveal.button}`}
           >
             {canTryAgain ? "★ SEE MY VIBES" : "★ SEE ALL VIBES"}

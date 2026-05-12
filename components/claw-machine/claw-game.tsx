@@ -131,7 +131,6 @@ export function ClawGame({
       });
     });
     return items.sort((a, b) => a.zIndex - b.zIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stableGifts, shuffleKey, nGifts, grabCounts]);
 
   const boxPx = Math.max(
@@ -446,8 +445,8 @@ export function ClawGame({
       {phase === "result" && revealReady && currentGift && (
         <RevealPanel
           gift={currentGift}
-          onReset={handleReset}
-          onViewPicks={handleViewPicks}
+          onResetAction={handleReset}
+          onViewPicksAction={handleViewPicks}
           canTryAgain={canTryAgain && remainingAttempts > 0}
           attemptNumber={revealAttempt}
           maxAttempts={MAX_ATTEMPTS}

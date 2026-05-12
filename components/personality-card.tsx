@@ -112,7 +112,7 @@ export function PersonalityCard({
           <p
             className={`font-pixel text-[7px] tracking-widest ${theme.text.secondary}`}
           >
-            YOU'RE INTO
+            YOU&apos;RE INTO
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {uniqueTags.map((tag) => (
