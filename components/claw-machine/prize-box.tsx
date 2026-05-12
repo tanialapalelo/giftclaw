@@ -1,24 +1,65 @@
-// Category → emoji hint shown on the lucky box beacon
-const CATEGORY_EMOJI: Record<string, string> = {
-  "Books & Stationery": "📚",
-  "Food & Drink": "🍜",
-  "Beauty & Self-care": "✨",
-  "Tech & Gadgets": "💻",
-  "Fashion & Accessories": "🎀",
-  "Experience & Activity": "🎪",
-  "Home & Living": "🏡",
-  "Art & Craft": "🎨",
-  "Sports & Fitness": "⚡",
-  "Music & Entertainment": "🎵",
-};
+// Category → emoji shown in center of each gift box
+const CATEGORY_EMOJI_MAP: [string, string][] = [
+  ["book", "📖"],
+  ["stationery", "✏️"],
+  ["food", "🍜"],
+  ["drink", "☕"],
+  ["cook", "🍳"],
+  ["culinary", "🍳"],
+  ["beauty", "💅"],
+  ["skincare", "🧴"],
+  ["self-care", "🛁"],
+  ["wellness", "🧘"],
+  ["tech", "💻"],
+  ["gadget", "📱"],
+  ["electronic", "🎧"],
+  ["fashion", "👗"],
+  ["cloth", "👗"],
+  ["accessory", "💍"],
+  ["jewelry", "💍"],
+  ["experience", "🎡"],
+  ["travel", "✈️"],
+  ["adventure", "🏔️"],
+  ["home", "🪴"],
+  ["living", "🛋️"],
+  ["decor", "🕯️"],
+  ["art", "🖌️"],
+  ["craft", "🧶"],
+  ["sport", "🏃"],
+  ["fitness", "💪"],
+  ["outdoor", "⛺"],
+  ["music", "🎵"],
+  ["entertainment", "🎬"],
+  ["gaming", "🎮"],
+  ["game", "🎮"],
+  ["photo", "📷"],
+  ["plant", "🌱"],
+  ["pet", "🐾"],
+  ["kid", "🧸"],
+  ["toy", "🧸"],
+  ["health", "💊"],
+  ["spa", "🧖"],
+  ["finance", "💰"],
+];
 
-// Ribbon colors per index so each box looks unique
+function getCategoryEmoji(category?: string): string {
+  if (!category) return "🎁";
+  const lower = category.toLowerCase();
+  for (const [key, emoji] of CATEGORY_EMOJI_MAP) {
+    if (lower.includes(key)) return emoji;
+  }
+  return "🎁";
+}
+
 const RIBBON_COLORS = [
   "bg-red-400",
   "bg-yellow-400",
   "bg-blue-400",
   "bg-green-400",
   "bg-purple-400",
+  "bg-pink-400",
+  "bg-orange-400",
+  "bg-teal-400",
 ];
 
 const BOX_COLORS = [
@@ -27,94 +68,104 @@ const BOX_COLORS = [
   "bg-sky-100 border-sky-400",
   "bg-emerald-100 border-emerald-400",
   "bg-purple-100 border-purple-400",
+  "bg-pink-100 border-pink-400",
+  "bg-orange-100 border-orange-400",
+  "bg-teal-100 border-teal-400",
 ];
 
 export function PrizeBox({
   isLifted,
+  isTumbling,
   index,
-  luckyCategory,
+  category,
+  giftEmoji,
+  sizePx = 52,
 }: {
   isLifted: boolean;
+  isTumbling?: boolean;
   index: number;
-  /** If set, this box is the lucky box and shows this category as a hint icon */
-  luckyCategory?: string;
+  category?: string;
+  /** AI-assigned emoji for this specific gift; overrides category fallback */
+  giftEmoji?: string;
+  sizePx?: number;
 }) {
-  const isLucky = !!luckyCategory;
-  const beaconEmoji = luckyCategory ? (CATEGORY_EMOJI[luckyCategory] ?? "🎁") : null;
-
-  // Lucky box gets golden ribbon/box
-  const ribbon = isLucky ? "bg-yellow-400" : RIBBON_COLORS[index % RIBBON_COLORS.length];
-  const box = isLucky
-    ? "bg-yellow-50 border-yellow-500"
-    : BOX_COLORS[index % BOX_COLORS.length];
+  const emoji = giftEmoji ?? getCategoryEmoji(category);
+  const ribbon = RIBBON_COLORS[index % RIBBON_COLORS.length];
+  const box = BOX_COLORS[index % BOX_COLORS.length];
+  const bowSize = Math.round(sizePx * 0.3);
+  const emojiSize = sizePx < 46 ? "text-base" : "text-xl";
 
   return (
     <div
       className={`
         relative flex flex-col items-center justify-end
-        ${isLifted ? "animate-poof pointer-events-none" : "animate-float"}
+        transition-[transform,opacity] duration-400
+        ${isLifted ? "scale-0 opacity-0 pointer-events-none" : ""}
+        ${isTumbling && !isLifted ? "animate-tumble" : ""}
       `}
-      style={{ animationDelay: isLifted ? "0s" : `${index * 0.3}s` }}
+      style={{ animationDelay: isTumbling ? `${(index * 73) % 350}ms` : "0s" }}
     >
-      {/* Lucky box beacon — shows category emoji as hint, only while not yet grabbed */}
-      {isLucky && !isLifted && beaconEmoji && (
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center gap-0.5">
-          <span
-            className="text-base animate-blink block text-center leading-none"
-            style={{ filter: "drop-shadow(0 0 5px rgba(250,204,21,0.9))" }}
-          >
-            {beaconEmoji}
-          </span>
-          <span
-            className="font-pixel text-[6px] leading-none"
-            style={{ color: "#facc15", textShadow: "0 0 4px #facc15" }}
-          >
-            ?
-          </span>
-        </div>
-      )}
-
-      {/* Bow on top */}
-      <div className="relative flex items-end justify-center mb-0.5 w-14">
-        {/* Left loop */}
+      {/* Bow */}
+      <div
+        className="relative flex items-end justify-center mb-0.5"
+        style={{ width: sizePx }}
+      >
         <div
-          className={`absolute left-1 bottom-0 h-4 w-4 rounded-full border-2 border-white/50 ${ribbon}`}
-          style={{ transform: "rotate(-30deg)", transformOrigin: "bottom right" }}
+          className={`absolute left-1 bottom-0 rounded-full border-2 border-white/50 ${ribbon}`}
+          style={{
+            width: bowSize,
+            height: bowSize,
+            transform: "rotate(-30deg)",
+            transformOrigin: "bottom right",
+          }}
         />
-        {/* Right loop */}
         <div
-          className={`absolute right-1 bottom-0 h-4 w-4 rounded-full border-2 border-white/50 ${ribbon}`}
-          style={{ transform: "rotate(30deg)", transformOrigin: "bottom left" }}
+          className={`absolute right-1 bottom-0 rounded-full border-2 border-white/50 ${ribbon}`}
+          style={{
+            width: bowSize,
+            height: bowSize,
+            transform: "rotate(30deg)",
+            transformOrigin: "bottom left",
+          }}
         />
-        {/* Center knot */}
-        <div className={`relative z-10 h-3 w-3 rounded-full border-2 border-white/60 ${ribbon}`} />
+        <div
+          className={`relative z-10 rounded-full border-2 border-white/60 ${ribbon}`}
+          style={{
+            width: Math.round(bowSize * 0.75),
+            height: Math.round(bowSize * 0.75),
+          }}
+        />
       </div>
 
       {/* Box body */}
       <div
-        className={`relative h-14 w-14 rounded border-4 overflow-hidden ${box}`}
+        className={`relative rounded border-4 overflow-hidden ${box}`}
         style={{
-          boxShadow: isLucky
-            ? "3px 3px 0 rgba(0,0,0,0.3), 6px 6px 0 rgba(0,0,0,0.15), 0 0 10px rgba(250,204,21,0.55), 0 0 22px rgba(250,204,21,0.25)"
-            : "3px 3px 0 rgba(0,0,0,0.3), 6px 6px 0 rgba(0,0,0,0.15)",
+          width: sizePx,
+          height: sizePx,
+          boxShadow: "3px 3px 0 rgba(0,0,0,0.3),5px 5px 0 rgba(0,0,0,0.15)",
         }}
       >
-        {/* Horizontal ribbon stripe */}
-        <div className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 ${ribbon} opacity-70`} />
-        {/* Vertical ribbon stripe */}
-        <div className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 ${ribbon} opacity-70`} />
-        {/* Shine */}
-        <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white opacity-50" />
-        {/* 3D depth — right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-black/10 rounded-r" />
-        {/* 3D depth — bottom edge */}
-        <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-black/10 rounded-b" />
-        {/* Shimmer overlay */}
-        {!isLifted && <div className="absolute inset-0 animate-shimmer" />}
-        {/* Lucky extra shimmer — brighter */}
-        {isLucky && !isLifted && (
-          <div className="absolute inset-0 animate-shimmer" style={{ opacity: 0.6 }} />
+        <div
+          className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 ${ribbon} opacity-70`}
+        />
+        <div
+          className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 ${ribbon} opacity-70`}
+        />
+        {!isLifted && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <span
+              className={`${emojiSize} leading-none select-none`}
+              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}
+            >
+              {emoji}
+            </span>
+          </div>
         )}
+        <div className="absolute left-1 top-1 h-2 w-2 rounded-full bg-white opacity-50" />
+        <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-black/10 rounded-r" />
+        <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-black/10 rounded-b" />
+        {!isLifted && <div className="absolute inset-0 animate-shimmer" />}
       </div>
     </div>
   );

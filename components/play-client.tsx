@@ -8,7 +8,6 @@ import type { Theme } from "@/lib/themes";
 import type { GiftSuggestion } from "@/types";
 import type { GameResultWithGift } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
-import { MAX_ATTEMPTS } from "@/lib/constants";
 
 function AlreadyPlayedView({
   results,
@@ -61,7 +60,7 @@ function AlreadyPlayedView({
                   <p
                     className={`font-pixel text-[8px] ${theme.text.secondary}`}
                   >
-                    GRAB {i + 1}
+                    GRAB {results.length - i}
                   </p>
                   <p className={`font-body text-sm ${theme.text.primary}`}>
                     "{vibe.tagline}"
@@ -89,9 +88,6 @@ function AlreadyPlayedView({
         <p className="font-body text-xs">
           Your gift-giver may have already started shopping based on these
           picks.
-          {deadlineText
-            ? ` The link closes on ${deadlineText} — after that, no changes possible.`
-            : " Think carefully before changing!"}
         </p>
       </div>
     </div>
@@ -124,7 +120,6 @@ export function PlayClient({
   const [botDismissed, setBotDismissed] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
 
-  // Player has used all attempts — show locked history view
   const isLocked = alreadyPlayedCount >= maxAttempts;
 
   return (

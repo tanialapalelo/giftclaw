@@ -16,7 +16,7 @@ export function Claw({
   heldEmoji: string | null; // ← emoji prize yang dibawa
   theme: Theme;
 }) {
-  const rodHeight = Math.max(8, (y / 100) * 288);
+  const rodHeight = Math.max(8, (y / 100) * 320);
   const displayX = phase === "moving" ? x : targetX;
 
   // Fingers OPEN saat moving dan dropping (mau grab)
@@ -30,7 +30,7 @@ export function Claw({
       className={`absolute top-0 flex flex-col items-center ${phase === "moving" ? "animate-sway" : ""}`}
       style={{
         left: `${displayX}%`,
-        transform: phase === "moving" ? undefined : "translateX(-50%)",
+        transform: "translateX(-50%)",
         transition:
           phase === "dropping" || phase === "grabbing" || phase === "lifting"
             ? "left 0.7s ease"
@@ -60,7 +60,9 @@ export function Claw({
       <div
         className="relative flex items-start justify-center"
         style={{
-          filter: isHolding ? "drop-shadow(0 0 4px rgba(255,255,255,0.5))" : undefined,
+          filter: isHolding
+            ? "drop-shadow(0 0 4px rgba(255,255,255,0.5))"
+            : undefined,
           transition: "filter 0.3s ease",
         }}
       >

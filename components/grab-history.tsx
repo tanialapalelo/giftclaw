@@ -10,11 +10,15 @@ export function GrabHistory({
   friendId,
   localHistory,
   theme,
+  canPlayAgain = false,
+  onPlayAgain,
 }: {
   friendId: string;
   /** In-memory grabs from this session — shown instantly then replaced with DB data */
   localHistory: GiftSuggestion[];
   theme: Theme;
+  canPlayAgain?: boolean;
+  onPlayAgain?: () => void;
 }) {
   const [history, setHistory] = useState<GiftSuggestion[]>(localHistory);
 
@@ -23,7 +27,9 @@ export function GrabHistory({
     getGameResultsForFriend(friendId).then((data) => {
       if (data && data.results.length > 0) {
         // Sort ascending by grabIndex so first grab = first card
-        const sorted = [...data.results].sort((a, b) => a.grabIndex - b.grabIndex);
+        const sorted = [...data.results].sort(
+          (a, b) => a.grabIndex - b.grabIndex
+        );
         setHistory(sorted.map((r) => r.giftSnapshot));
       }
     });
@@ -88,6 +94,16 @@ export function GrabHistory({
           );
         })}
       </div>
+
+      {/* Keep Playing button — show if there are remaining attempts */}
+      {canPlayAgain && onPlayAgain && (
+        <button
+          onClick={onPlayAgain}
+          className={`w-full rounded-2xl py-3 font-pixel text-[10px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
+        >
+          ↩ KEEP PLAYING
+        </button>
+      )}
 
       <p className={`font-pixel text-[7px] ${theme.text.secondary}`}>
         YOUR GIFT-GIVER WILL SEE WHAT TO BUY — STAY SURPRISED ✦

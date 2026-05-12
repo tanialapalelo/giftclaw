@@ -119,12 +119,17 @@ export function RevealPanel({
           <p
             className={`font-pixel text-[8px] uppercase tracking-widest ${theme.reveal.subtitle}`}
           >
-            YOUR GIFT VIBE
+            🔍 YOUR CLUE
           </p>
           <p
             className={`font-body text-sm leading-relaxed max-w-xs mx-auto ${theme.reveal.title}`}
           >
             &ldquo;{vibe.tagline}&rdquo;
+          </p>
+          <p
+            className={`font-pixel text-[7px] ${theme.reveal.subtitle} opacity-60`}
+          >
+            see all your gifts after final grab
           </p>
         </div>
 

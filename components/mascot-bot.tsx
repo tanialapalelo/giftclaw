@@ -16,10 +16,6 @@ function buildMessages(
 ): string[] {
   const msgs = [...MESSAGES_INTRO];
   if (previousResults && previousResults.length > 0) {
-    const last = previousResults[0];
-    msgs.push(
-      `📦 Last time someone grabbed "${last.giftSnapshot.name}" for ${friendName}!`
-    );
     msgs.push("🔄 Each grab reveals a different gift — choose wisely!");
   } else {
     msgs.push(`🎁 Let's find an amazing gift for ${friendName}!`);
@@ -88,6 +84,22 @@ export function MascotBot({
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(2px)" }}
       onClick={handleNext}
     >
+      {/* X skip button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDismiss();
+        }}
+        className={`absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border-2 font-pixel text-sm transition-all active:scale-90 ${
+          isDark
+            ? "border-yellow-400 bg-gray-900 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900"
+            : "border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white"
+        }`}
+        aria-label="Skip intro"
+      >
+        ✕
+      </button>
+
       {/* Stop propagation on inner card so only clicking the button dismisses */}
       <div
         className="w-full max-w-sm animate-bounce-in"

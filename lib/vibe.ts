@@ -2,6 +2,7 @@ export function getVibeFromGift(gift: {
   name: string;
   reason: string;
   category: string;
+  emoji?: string;
 }): {
   emoji: string;
   tagline: string;
@@ -35,11 +36,33 @@ export function getVibeFromGift(gift: {
     "Music & Entertainment": ["joyful", "vibrant"],
   };
 
-  // Use the AI's reason directly as the tagline — length is controlled in the prompt.
-  const tagline = gift.reason;
+  // Mystery vibe taglines — mood-based, never names the gift
+  const categoryVibes: Record<string, string> = {
+    "Books & Stationery":
+      "Something that opens a world you haven't explored yet...",
+    "Food & Drink": "Something warm, comforting, and made for slow moments...",
+    "Beauty & Self-care":
+      "Something that says: you deserve to feel good today...",
+    "Tech & Gadgets":
+      "Something sharp, modern, and built for your curiosity...",
+    "Fashion & Accessories":
+      "Something that lets you show the world who you are...",
+    "Experience & Activity":
+      "Something to be lived, not owned — an adventure awaits...",
+    "Home & Living":
+      "Something that makes your space feel a little more like you...",
+    "Art & Craft": "Something for the hands and heart of a creator...",
+    "Sports & Fitness":
+      "Something to push further, go harder, and feel alive...",
+    "Music & Entertainment":
+      "Something to fill the air with joy and good vibes...",
+  };
+
+  const tagline =
+    categoryVibes[gift.category] ?? "Something special, chosen just for you...";
 
   return {
-    emoji: categoryEmoji[gift.category] ?? "🎁",
+    emoji: gift.emoji ?? categoryEmoji[gift.category] ?? "🎁",
     tagline,
     moodTags: categoryMoods[gift.category] ?? ["special", "personal"],
   };

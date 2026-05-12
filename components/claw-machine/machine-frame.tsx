@@ -60,7 +60,7 @@ export function MachineFrame({
       {/* Glass Interior */}
       <div className={`relative border-x-4 ${theme.machine.frame}`}>
         <div
-          className={`relative h-72 overflow-hidden crt-overlay shadow-[inset_0_4px_20px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3)] ${theme.machine.interior}`}
+          className={`relative h-80 overflow-hidden crt-overlay shadow-[inset_0_4px_20px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3)] ${theme.machine.interior}`}
         >
           {/* Glass reflection stripe (top arch) */}
           <div className="absolute top-0 left-4 right-4 h-8 rounded-b-full bg-white/10 pointer-events-none z-30" />
@@ -71,7 +71,10 @@ export function MachineFrame({
           {/* Width = chutePercent% so prize container can start at the same percentage */}
           <div
             className={`absolute left-0 top-0 bottom-6 flex flex-col items-center justify-end pb-1 z-10 border-r-4 ${theme.machine.rail}`}
-            style={{ width: `${chutePercent}%`, background: "rgba(0,0,0,0.45)" }}
+            style={{
+              width: `${chutePercent}%`,
+              background: "rgba(0,0,0,0.45)",
+            }}
           >
             <div className="flex flex-col items-center gap-0.5 mb-2">
               <div className="font-pixel text-[8px] text-white/60 animate-blink">
