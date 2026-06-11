@@ -9,6 +9,7 @@ import { isValidUUID } from "@/lib/utils";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
+import { MAX_ATTEMPTS } from "@/lib/constants";
 
 export default async function FriendPage({
   params,
@@ -22,13 +23,13 @@ export default async function FriendPage({
   const friend = await getFriend(id);
   if (!friend) notFound();
 
-  const gameData = await getGameResultsForFriend(friend.id);
+  const gameData = await getGameResultsForFriend(friend.shareToken);
   const gameResults = gameData?.results ?? [];
   const totalPlays = gameData?.totalCount ?? 0;
   const hasResults = totalPlays > 0;
 
   const themeKey = friend.theme as keyof typeof THEMES;
-  const theme = THEMES[themeKey] ?? THEMES.soft;
+  const theme = THEMES[themeKey] ?? THEMES.bold;
 
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
   const deadlineText = validUntil
@@ -137,7 +138,7 @@ export default async function FriendPage({
                 {
                   n: "3",
                   label: "Wait for " + friend.name + " to Play",
-                  desc: "They pick up to 3 vibes — results appear below",
+                  desc: `They pick up to ${MAX_ATTEMPTS} vibes — results appear below`,
                   href: null,
                   done: false,
                 },
@@ -216,7 +217,7 @@ export default async function FriendPage({
               <p
                 className={`font-pixel text-[8px] tracking-widest ${theme.text.secondary}`}
               >
-                {friend.name.toUpperCase()} PLAYED ({totalPlays}/3)
+                {friend.name.toUpperCase()} PLAYED ({totalPlays}/{MAX_ATTEMPTS})
               </p>
               <div className="h-px flex-1 bg-white/10" />
             </div>
@@ -231,55 +232,66 @@ export default async function FriendPage({
             {gameResults.map((result) => {
               const vibe = getVibeFromGift(result.giftSnapshot);
               return (
-              <div
-                key={result.id}
-                className={`rounded-lg border-2 p-4 space-y-2 ${theme.prize.box}`}
-              >
-                {/* Grab number */}
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`font-pixel text-[7px] ${theme.text.secondary}`}
+                <div
+                  key={result.id}
+                  className={`rounded-lg border-2 p-4 space-y-2 ${theme.prize.box}`}
+                >
+                  {/* Grab number */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-pixel text-[7px] ${theme.text.secondary}`}
+                    >
+                      GRAB {result.grabIndex}
+                    </span>
+                    <span className="text-lg">{vibe.emoji}</span>
+                    <div className="flex gap-1 ml-auto">
+                      {vibe.moodTags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={`rounded-full px-2 py-0.5 font-body text-[10px] bg-black/10 ${theme.text.secondary}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* What the player saw (the clue) */}
+                  <div
+                    className={`rounded p-2 bg-black/5 border border-black/10`}
                   >
-                    GRAB {result.grabIndex}
-                  </span>
-                  <span className="text-lg">{vibe.emoji}</span>
-                  <div className="flex gap-1 ml-auto">
-                    {vibe.moodTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={`rounded-full px-2 py-0.5 font-body text-[10px] bg-black/10 ${theme.text.secondary}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    <p
+                      className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}
+                    >
+                      CLUE {friend.name.toUpperCase()} SAW:
+                    </p>
+                    <p
+                      className={`font-body text-xs italic leading-relaxed ${theme.text.secondary}`}
+                    >
+                      &ldquo;{vibe.tagline}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* Actual gift to buy */}
+                  <div>
+                    <p
+                      className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}
+                    >
+                      GIFT TO BUY:
+                    </p>
+                    <p
+                      className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
+                    >
+                      {result.giftSnapshot.name}
+                    </p>
+                    <p
+                      className={`font-body text-xs mt-0.5 ${theme.text.secondary}`}
+                    >
+                      {result.giftSnapshot.priceRange} ·{" "}
+                      {result.giftSnapshot.category}
+                    </p>
                   </div>
                 </div>
-
-                {/* What the player saw (the clue) */}
-                <div className={`rounded p-2 bg-black/5 border border-black/10`}>
-                  <p className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}>
-                    CLUE {friend.name.toUpperCase()} SAW:
-                  </p>
-                  <p className={`font-body text-xs italic leading-relaxed ${theme.text.secondary}`}>
-                    &ldquo;{vibe.tagline}&rdquo;
-                  </p>
-                </div>
-
-                {/* Actual gift to buy */}
-                <div>
-                  <p className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}>
-                    GIFT TO BUY:
-                  </p>
-                  <p
-                    className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
-                  >
-                    {result.giftSnapshot.name}
-                  </p>
-                  <p className={`font-body text-xs mt-0.5 ${theme.text.secondary}`}>
-                    {result.giftSnapshot.priceRange} · {result.giftSnapshot.category}
-                  </p>
-                </div>
-              </div>
               );
             })}
           </div>

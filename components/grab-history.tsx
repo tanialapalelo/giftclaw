@@ -7,13 +7,13 @@ import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 
 export function GrabHistory({
-  friendId,
+  shareToken,
   localHistory,
   theme,
   canPlayAgain = false,
   onPlayAgain,
 }: {
-  friendId: string;
+  shareToken: string;
   /** In-memory grabs from this session — shown instantly then replaced with DB data */
   localHistory: GiftSuggestion[];
   theme: Theme;
@@ -24,7 +24,7 @@ export function GrabHistory({
 
   // Load all grabs for this friend from DB (includes previous sessions)
   useEffect(() => {
-    getGameResultsForFriend(friendId).then((data) => {
+    getGameResultsForFriend(shareToken).then((data) => {
       if (data && data.results.length > 0) {
         // Sort ascending by grabIndex so first grab = first card
         const sorted = [...data.results].sort(
@@ -33,7 +33,7 @@ export function GrabHistory({
         setHistory(sorted.map((r) => r.giftSnapshot));
       }
     });
-  }, [friendId]);
+  }, [shareToken]);
   return (
     <div className="animate-fade-in space-y-4 text-center">
       <div className="space-y-1">

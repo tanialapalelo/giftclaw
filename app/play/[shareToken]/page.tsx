@@ -42,7 +42,7 @@ export default async function PlayPage({
   const friend = await getFriendByShareToken(shareToken);
   if (!friend) notFound();
 
-  const theme = THEMES[friend.theme as keyof typeof THEMES] ?? THEMES.soft;
+  const theme = THEMES[friend.theme as keyof typeof THEMES] ?? THEMES.bold;
 
   // Check if link has expired
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
@@ -72,7 +72,7 @@ export default async function PlayPage({
     );
   }
 
-  const gameData = await getGameResultsForFriend(friend.id);
+  const gameData = await getGameResultsForFriend(shareToken);
   const alreadyPlayedCount = gameData?.totalCount ?? 0;
   const previousResults = gameData?.results ?? null;
 
@@ -97,7 +97,7 @@ export default async function PlayPage({
         friend={friend}
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}
-        friendId={friend.id}
+        shareToken={shareToken}
         previousResults={previousResults}
         alreadyPlayedCount={alreadyPlayedCount}
         validUntil={validUntil?.toISOString() ?? null}

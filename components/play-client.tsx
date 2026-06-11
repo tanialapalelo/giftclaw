@@ -98,7 +98,7 @@ export function PlayClient({
   friend,
   theme,
   gifts,
-  friendId,
+  shareToken,
   previousResults,
   alreadyPlayedCount,
   validUntil,
@@ -111,7 +111,7 @@ export function PlayClient({
   };
   theme: Theme;
   gifts: GiftSuggestion[];
-  friendId: string;
+  shareToken: string;
   previousResults: GameResultWithGift[] | null;
   alreadyPlayedCount: number;
   validUntil: string | null;
@@ -161,7 +161,7 @@ export function PlayClient({
           <ClawGame
             gifts={gifts}
             theme={theme}
-            friendId={friendId}
+            shareToken={shareToken}
             previousGrabCount={alreadyPlayedCount}
           />
         </>

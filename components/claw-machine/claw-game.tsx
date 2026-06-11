@@ -6,8 +6,9 @@ import { MachineFrame } from "./machine-frame";
 import { Claw } from "./claw";
 import { PrizeBox } from "./prize-box";
 import { RevealPanel } from "./reveal-panel";
+import { AttemptIndicator } from "./attempt-indicator";
+import { GameControls } from "./game-controls";
 import { GrabHistory } from "@/components/grab-history";
-import { PixelButton } from "@/components/ui/pixel-button";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
 import { saveGameResult } from "@/lib/actions/gift";
@@ -34,12 +35,12 @@ function hash(a: number, b: number, c: number): number {
 export function ClawGame({
   gifts,
   theme,
-  friendId,
+  shareToken,
   previousGrabCount = 0,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
-  friendId: string;
+  shareToken: string;
   previousGrabCount?: number;
 }) {
   const sessionId = useRef(crypto.randomUUID());
@@ -229,7 +230,7 @@ export function ClawGame({
       // Allow the same gift name multiple times — grabHistory.length drives the attempt counter
       setGrabHistory((prev) => [...prev, currentGift]);
       void saveGameResult({
-        friendId,
+        shareToken,
         sessionId: sessionId.current,
         grabIndex,
         giftSnapshot: currentGift,
@@ -294,7 +295,7 @@ export function ClawGame({
   if (showHistory) {
     return (
       <GrabHistory
-        friendId={friendId}
+        shareToken={shareToken}
         localHistory={grabHistory}
         theme={theme}
         canPlayAgain={canTryAgain && remainingAttempts > 0}
@@ -310,62 +311,14 @@ export function ClawGame({
 
   return (
     <div className={`space-y-4 ${shaking ? "animate-screenshake" : ""}`}>
-      {/* Attempt indicator */}
-      <div className="flex items-center justify-between px-1 h-6">
-        <span className={`font-pixel text-[7px] ${theme.text.secondary}`}>
-          ATTEMPT {Math.min(currentAttempt, MAX_ATTEMPTS)}/{MAX_ATTEMPTS}
-        </span>
-
-        <div className="h-6 flex items-center">
-          {phase === "moving" && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ◄ MOVE THE CLAW ►
-            </p>
-          )}
-          {phase === "dropping" && (
-            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
-              ↓ DROPPING...
-            </p>
-          )}
-          {phase === "grabbing" && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ✦ GRABBING!
-            </p>
-          )}
-          {phase === "lifting" && (
-            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
-              ↑ LIFTING...
-            </p>
-          )}
-          {phase === "result" && chuteDropActive && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ✦ OPENING...
-            </p>
-          )}
-        </div>
-
-        {/* Attempt dots */}
-        <div className="flex gap-1">
-          {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                i < grabsCompleted
-                  ? theme.controls.grab
-                  : i === grabsCompleted
-                    ? "bg-white/70 animate-blink"
-                    : "bg-white/20"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      <AttemptIndicator
+        phase={phase}
+        currentAttempt={currentAttempt}
+        grabsCompleted={grabsCompleted}
+        maxAttempts={MAX_ATTEMPTS}
+        chuteDropActive={chuteDropActive}
+        theme={theme}
+      />
 
       <MachineFrame
         theme={theme}
@@ -454,54 +407,19 @@ export function ClawGame({
         />
       )}
 
-      {/* Controls */}
       {phase !== "result" && (
-        <div className="flex flex-col items-center gap-2">
-          <div
-            className={`mx-auto flex w-fit items-center justify-center gap-3 px-6 py-3 rounded-2xl border-2 border-black/30 shadow-[0_4px_0_rgba(0,0,0,0.3)] ${theme.machine.controlPanel}`}
-          >
-            <PixelButton
-              onClick={moveLeft}
-              disabled={phase !== "moving"}
-              className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
-            >
-              ◀
-            </PixelButton>
-            <div className="flex flex-col items-center">
-              <PixelButton
-                onClick={handleGrab}
-                disabled={phase !== "moving"}
-                className={`px-8 ${theme.controls.grab} ${phase === "moving" ? "active:scale-90" : ""} active:brightness-75 transition-all`}
-              >
-                GRAB
-              </PixelButton>
-              {phase === "moving" && (
-                <span className="font-pixel text-[8px] text-white/70 animate-blink mt-1">
-                  ♪ SPACE
-                </span>
-              )}
-            </div>
-            <PixelButton
-              onClick={moveRight}
-              disabled={phase !== "moving"}
-              className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
-            >
-              ▶
-            </PixelButton>
-          </div>
-          {phase === "moving" && (
-            <button
-              onClick={() => {
-                setIsTumbling(true);
-                setShuffleKey((k) => k + 1);
-                setTimeout(() => setIsTumbling(false), 800);
-              }}
-              className={`flex items-center gap-1.5 rounded-xl border-2 border-black/20 px-4 py-1.5 font-pixel text-[8px] tracking-widest shadow transition-all active:scale-95 active:brightness-75 ${theme.machine.controlPanel} text-white hover:brightness-110`}
-            >
-              🔀 SHUFFLE
-            </button>
-          )}
-        </div>
+        <GameControls
+          phase={phase}
+          onMoveLeft={moveLeft}
+          onMoveRight={moveRight}
+          onGrab={handleGrab}
+          onShuffle={() => {
+            setIsTumbling(true);
+            setShuffleKey((k) => k + 1);
+            setTimeout(() => setIsTumbling(false), 800);
+          }}
+          theme={theme}
+        />
       )}
 
       {phase === "moving" && (
