@@ -85,7 +85,7 @@ export function FriendForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "soft");
+  const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "bold");
   const [interests, setInterests] = useState<string[]>(
     initialData?.interests ?? []
   );
@@ -275,9 +275,7 @@ export function FriendForm({
         className="w-full bg-gray-900 text-white hover:bg-gray-700"
       >
         {isPending
-          ? isEditMode
-            ? "SAVING..."
-            : "SAVING..."
+          ? "SAVING..."
           : isEditMode
             ? "✦ SAVE & REGENERATE GIFTS"
             : "FIND GIFTS ✦"}
