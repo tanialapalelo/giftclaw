@@ -22,7 +22,7 @@ export default async function GiftsPage({
   if (!friend) notFound();
 
   const themeKey = friend.theme as keyof typeof THEMES;
-  const theme = THEMES[themeKey] ?? THEMES.soft;
+  const theme = THEMES[themeKey] ?? THEMES.bold;
 
   const result = await getGiftSuggestions(id);
 

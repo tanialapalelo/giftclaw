@@ -1,47 +1,4 @@
 export const THEMES = {
-  soft: {
-    label: "✨ Soft & Elegant",
-    isDark: false,
-    page: {
-      bg: "bg-pink-100",
-      pattern: "bg-pixel-check",
-    },
-    text: {
-      primary: "text-gray-900",
-      secondary: "text-gray-500",
-      accent: "text-pink-600",
-    },
-    machine: {
-      frame: "bg-pink-400 border-pink-600",
-      neon: "neon-pink", // ← our class CSS in `globals.css`
-      interior: "bg-gradient-to-b from-pink-50 via-white to-rose-100",
-      rail: "bg-pink-300",
-      floor: "bg-pink-300",
-      controlPanel: "bg-pink-500",
-    },
-    claw: {
-      rod: "bg-pink-300",
-      fingers: "bg-pink-400",
-    },
-    prize: {
-      box: "border-pink-400 bg-pink-50",
-      emoji: "🎀",
-      altEmojis: ["🎀", "💝", "🌸", "🎁", "💕"],
-      poof: "text-pink-400",
-    },
-    reveal: {
-      bg: "bg-pink-400",
-      title: "text-white",
-      subtitle: "text-pink-100",
-      badge: "text-pink-900",
-      button: "bg-white text-pink-600",
-    },
-    controls: {
-      move: "bg-pink-500 text-white hover:bg-pink-400",
-      grab: "bg-rose-500 text-white hover:bg-rose-400",
-    },
-  },
-
   bold: {
     label: "🔥 Bold & Cool",
     isDark: true,
@@ -82,6 +39,49 @@ export const THEMES = {
     controls: {
       move: "bg-slate-700 text-white hover:bg-slate-600 border border-cyan-500",
       grab: "bg-cyan-500 text-white hover:bg-cyan-400",
+    },
+  },
+
+  soft: {
+    label: "✨ Soft & Elegant",
+    isDark: false,
+    page: {
+      bg: "bg-pink-100",
+      pattern: "bg-pixel-check",
+    },
+    text: {
+      primary: "text-gray-900",
+      secondary: "text-gray-500",
+      accent: "text-pink-600",
+    },
+    machine: {
+      frame: "bg-pink-400 border-pink-600",
+      neon: "neon-pink", // ← our class CSS in `globals.css`
+      interior: "bg-gradient-to-b from-pink-50 via-white to-rose-100",
+      rail: "bg-pink-300",
+      floor: "bg-pink-300",
+      controlPanel: "bg-pink-500",
+    },
+    claw: {
+      rod: "bg-pink-300",
+      fingers: "bg-pink-400",
+    },
+    prize: {
+      box: "border-pink-400 bg-pink-50",
+      emoji: "🎀",
+      altEmojis: ["🎀", "💝", "🌸", "🎁", "💕"],
+      poof: "text-pink-400",
+    },
+    reveal: {
+      bg: "bg-pink-400",
+      title: "text-white",
+      subtitle: "text-pink-100",
+      badge: "text-pink-900",
+      button: "bg-white text-pink-600",
+    },
+    controls: {
+      move: "bg-pink-500 text-white hover:bg-pink-400",
+      grab: "bg-rose-500 text-white hover:bg-rose-400",
     },
   },
 
