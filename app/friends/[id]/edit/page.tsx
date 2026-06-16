@@ -30,7 +30,7 @@ export default async function EditFriendPage({
           </p>
         </div>
 
-        <PixelCard>
+        <PixelCard dark>
           <FriendForm
             friendId={id}
             initialData={{

@@ -97,17 +97,13 @@ export function MachineFrame({
 
       {/* Cabinet Bottom */}
       <div
-        className={`flex flex-col items-center gap-1 rounded-b-lg border-4 border-t-0 py-2 ${theme.machine.frame}`}
+        className={`flex items-center justify-center gap-3 rounded-b-lg border-4 border-t-0 py-2 ${theme.machine.frame}`}
       >
-        <div className="flex items-center justify-center gap-3">
-          <div className="h-1.5 w-10 rounded-full bg-black/40" />
-          <p className="font-pixel text-[6px] text-white/70 animate-coin">
-            INSERT COIN
-          </p>
-          <div className="h-1.5 w-10 rounded-full bg-black/40" />
-        </div>
-        {/* Coin slot */}
-        <div className="w-8 h-1 rounded-full bg-black/70 border border-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
+        <div className="h-1.5 w-10 rounded-full bg-black/40" />
+        <p className="font-pixel text-[6px] text-white/60 tracking-widest">
+          ← MOVE →
+        </p>
+        <div className="h-1.5 w-10 rounded-full bg-black/40" />
       </div>
     </div>
   );

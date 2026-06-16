@@ -46,7 +46,12 @@ export default async function PlayPage({
 
   // Check if link has expired
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
-  const isExpired = validUntil !== null && new Date() > validUntil;
+  // Expired only after end of the chosen day, so "today" still allows access all day
+  const isExpired = validUntil !== null && (() => {
+    const eod = new Date(validUntil);
+    eod.setHours(23, 59, 59, 999);
+    return new Date() > eod;
+  })();
 
   if (isExpired) {
     return (

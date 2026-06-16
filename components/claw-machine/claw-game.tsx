@@ -11,9 +11,9 @@ import { GameControls } from "./game-controls";
 import { GrabHistory } from "@/components/grab-history";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
+import type { GameResultWithGift } from "@/lib/actions/game";
 import { saveGameResult } from "@/lib/actions/gift";
 import { MAX_ATTEMPTS, COPIES } from "@/lib/constants";
-import { getVibeFromGift } from "@/lib/vibe";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -37,11 +37,13 @@ export function ClawGame({
   theme,
   shareToken,
   previousGrabCount = 0,
+  previousResults,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
   shareToken: string;
   previousGrabCount?: number;
+  previousResults?: GameResultWithGift[];
 }) {
   const sessionId = useRef(crypto.randomUUID());
   const [shuffleKey, setShuffleKey] = useState(0);
@@ -49,6 +51,7 @@ export function ClawGame({
   const [grabHistory, setGrabHistory] = useState<GiftSuggestion[]>([]);
   const [grabCounts, setGrabCounts] = useState<Map<string, number>>(new Map());
   const [showHistory, setShowHistory] = useState(false);
+  const [midGameHistory, setMidGameHistory] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [lockedGrabKey, setLockedGrabKey] = useState<string | null>(null);
   // Chute-drop animation: show gift emoji dropping from chute before reveal panel
@@ -127,7 +130,9 @@ export function ClawGame({
           xPct,
           yPx,
           rot,
-          zIndex: Math.round(yPx * 10) + col,
+          // Items at top of pile (low yPx = near the claw) get higher z-index
+          // so they render in front visually AND the grab logic picks them first
+          zIndex: Math.round((PILE_H - yPx) * 10) + col,
         };
       });
     });
@@ -142,30 +147,34 @@ export function ClawGame({
   const handleGrab = useCallback(() => {
     if (phase !== "moving") return;
     const clawInZone = ((clawX - CHUTE_OFFSET) / (100 - CHUTE_OFFSET)) * 100;
-    let nearestCol = 0;
+    let nearestShuffledIdx = 0;
     let nearestDist = Infinity;
     let nearestKey: string | null = null;
-    let nearestXPct = 50; // default to mid-zone
-    for (let col = 0; col < shuffledGifts.length; col++) {
+    let nearestXPct = 50;
+
+    // Match by gift.name so indices stay correct after some gifts are fully grabbed.
+    // displayItems use stableGifts col indices; shuffledGifts is a filtered subset,
+    // so iterating shuffledGifts and finding display items by name avoids the mismatch.
+    for (let i = 0; i < shuffledGifts.length; i++) {
+      const gift = shuffledGifts[i];
       const copies = displayItems.filter(
-        (item) => item.col === col && item.key !== lockedGrabKey
+        (item) => item.gift.name === gift.name && item.key !== lockedGrabKey
       );
       if (!copies.length) continue;
       const topCopy = copies.reduce((a, b) => (a.yPx < b.yPx ? a : b));
       const dist = Math.abs(topCopy.xPct - clawInZone);
       if (dist < nearestDist) {
         nearestDist = dist;
-        nearestCol = col;
+        nearestShuffledIdx = i;
         nearestKey = topCopy.key;
         nearestXPct = topCopy.xPct;
       }
     }
     if (nearestKey) setLockedGrabKey(nearestKey);
-    // Convert prize-zone % → container % so claw visually goes to the actual box
     const exactContainerX =
       CHUTE_OFFSET + (nearestXPct / 100) * (100 - CHUTE_OFFSET);
-    grab(nearestCol, exactContainerX);
-  }, [phase, clawX, shuffledGifts.length, displayItems, lockedGrabKey, grab]);
+    grab(nearestShuffledIdx, exactContainerX);
+  }, [phase, clawX, shuffledGifts, displayItems, lockedGrabKey, grab]);
 
   const currentGift =
     grabbedPrize !== null ? (shuffledGifts[grabbedPrize] ?? null) : null;
@@ -179,9 +188,9 @@ export function ClawGame({
   const canTryAgain = totalAttemptsSoFar < MAX_ATTEMPTS;
 
   const isHoldingPrize = phase === "grabbing" || phase === "lifting";
-  // Use the actual gift's emoji so claw shows the same icon as the box being grabbed
+  // Use the gift's own emoji (same as the box in the machine) for visual consistency
   const heldEmoji =
-    isHoldingPrize && currentGift ? getVibeFromGift(currentGift).emoji : null;
+    isHoldingPrize && currentGift ? (currentGift.emoji ?? "🎁") : null;
 
   // grabsCompleted = saved grabs; currentAttempt = the one being played right now (during moving)
   const grabsCompleted = totalAttemptsSoFar;
@@ -273,9 +282,16 @@ export function ClawGame({
     setShowHistory(true);
   };
 
-  // Called from GrabHistory "KEEP PLAYING" — grabCount already incremented by handleViewPicks
+  const handleViewHistoryMidGame = () => {
+    setMidGameHistory(true);
+    setShowHistory(true);
+  };
+
+  // Called from GrabHistory "KEEP PLAYING"
+  // If opened mid-game (no grab happened), just close — no reshuffle needed
   const handleKeepPlaying = () => {
-    doReset();
+    if (!midGameHistory) doReset();
+    setMidGameHistory(false);
     setShowHistory(false);
   };
 
@@ -292,11 +308,20 @@ export function ClawGame({
     return () => window.removeEventListener("keydown", handleKey);
   }, [moveLeft, moveRight, handleGrab]);
 
+  // Combine previous sessions + current session so GrabHistory shows all picks immediately
+  const combinedHistory = [
+    ...(previousResults ?? [])
+      .slice()
+      .sort((a, b) => a.grabIndex - b.grabIndex)
+      .map((r) => r.giftSnapshot),
+    ...grabHistory,
+  ];
+
   if (showHistory) {
     return (
       <GrabHistory
         shareToken={shareToken}
-        localHistory={grabHistory}
+        localHistory={combinedHistory}
         theme={theme}
         canPlayAgain={canTryAgain && remainingAttempts > 0}
         onPlayAgain={handleKeepPlaying}
@@ -304,10 +329,7 @@ export function ClawGame({
     );
   }
 
-  // Emoji to show in chute-drop animation
-  const chuteEmoji = currentGiftRef.current
-    ? getVibeFromGift(currentGiftRef.current).emoji
-    : "🎁";
+  const chuteEmoji = currentGiftRef.current?.emoji ?? "🎁";
 
   return (
     <div className={`space-y-4 ${shaking ? "animate-screenshake" : ""}`}>
@@ -362,6 +384,7 @@ export function ClawGame({
                 category={item.gift.category}
                 giftEmoji={item.gift.emoji}
                 sizePx={boxPx}
+                boxStyle={theme.prize.boxStyle}
               />
             </div>
           ))}
@@ -418,14 +441,11 @@ export function ClawGame({
             setShuffleKey((k) => k + 1);
             setTimeout(() => setIsTumbling(false), 800);
           }}
+          onViewHistory={handleViewHistoryMidGame}
+          pickCount={previousGrabCount + grabHistory.length}
+          maxAttempts={MAX_ATTEMPTS}
           theme={theme}
         />
-      )}
-
-      {phase === "moving" && (
-        <p className="text-center font-body text-[10px] text-gray-400">
-          ← → arrow keys to move · space to grab
-        </p>
       )}
     </div>
   );

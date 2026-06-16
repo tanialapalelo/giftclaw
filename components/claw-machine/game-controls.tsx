@@ -10,6 +10,9 @@ export function GameControls({
   onMoveRight,
   onGrab,
   onShuffle,
+  onViewHistory,
+  pickCount = 0,
+  maxAttempts = 5,
   theme,
 }: {
   phase: GamePhase;
@@ -17,8 +20,13 @@ export function GameControls({
   onMoveRight: () => void;
   onGrab: () => void;
   onShuffle: () => void;
+  onViewHistory?: () => void;
+  pickCount?: number;
+  maxAttempts?: number;
   theme: Theme;
 }) {
+  const secondaryBtnClass = `flex items-center gap-1.5 rounded-xl border-2 border-black/20 px-4 py-1.5 font-pixel text-[8px] tracking-widest shadow transition-all active:scale-95 active:brightness-75 ${theme.machine.controlPanel} text-white hover:brightness-110`;
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div
@@ -53,13 +61,18 @@ export function GameControls({
           ▶
         </PixelButton>
       </div>
+
       {phase === "moving" && (
-        <button
-          onClick={onShuffle}
-          className={`flex items-center gap-1.5 rounded-xl border-2 border-black/20 px-4 py-1.5 font-pixel text-[8px] tracking-widest shadow transition-all active:scale-95 active:brightness-75 ${theme.machine.controlPanel} text-white hover:brightness-110`}
-        >
-          🔀 SHUFFLE
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={onShuffle} className={secondaryBtnClass}>
+            🔀 SHUFFLE
+          </button>
+          {pickCount > 0 && onViewHistory && (
+            <button onClick={onViewHistory} className={secondaryBtnClass}>
+              📋 MY PICKS ({pickCount}/{maxAttempts})
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

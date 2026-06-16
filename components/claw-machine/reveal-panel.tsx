@@ -94,7 +94,7 @@ export function RevealPanel({
           ATTEMPT {attemptNumber} / {maxAttempts}
         </p>
 
-        {/* Emoji with sparkle burst */}
+        {/* Gift emoji with sparkle burst — same emoji as in the machine */}
         <div className="relative inline-block w-24 h-24">
           <div className="absolute inset-0 flex items-center justify-center">
             {["★", "✦", "◆", "✦", "★"].map((s, i) => (
@@ -111,7 +111,7 @@ export function RevealPanel({
             ))}
           </div>
           <div className="absolute inset-0 flex items-center justify-center text-6xl animate-bounce-in">
-            {vibe.emoji}
+            {gift.emoji ?? vibe.emoji}
           </div>
         </div>
 

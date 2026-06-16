@@ -46,7 +46,7 @@ export function GrabHistory({
           ★ {history.length} VIBE{history.length > 1 ? "S" : ""} REVEALED ★
         </h2>
         <p className={`font-body text-xs ${theme.text.secondary}`}>
-          Your gift-giver can see these — get ready to be surprised! 🎁
+          Your gift-giver can see these. Get ready to be surprised! 🎁
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function GrabHistory({
       {canPlayAgain && onPlayAgain && (
         <button
           onClick={onPlayAgain}
-          className={`w-full rounded-2xl py-3 font-pixel text-[10px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
+          className={`rounded-full px-8 py-3 font-pixel text-[10px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
         >
           ↩ KEEP PLAYING
         </button>
