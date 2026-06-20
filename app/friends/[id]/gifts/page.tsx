@@ -22,7 +22,7 @@ export default async function GiftsPage({
   if (!friend) notFound();
 
   const themeKey = friend.theme as keyof typeof THEMES;
-  const theme = THEMES[themeKey] ?? THEMES.soft;
+  const theme = THEMES[themeKey] ?? THEMES.bold;
 
   const result = await getGiftSuggestions(id);
 
@@ -40,7 +40,7 @@ export default async function GiftsPage({
             {friend.name}
           </h1>
           {"cached" in result && result.cached && (
-            <span className="mt-2 inline-block rounded-full bg-green-100 px-3 py-1 font-body text-xs text-green-700">
+            <span className={`mt-2 inline-block rounded-full px-3 py-1 font-body text-xs ${theme.isDark ? "bg-white/10 text-white/60" : "bg-green-100 text-green-700"}`}>
               ✦ Saved suggestions
             </span>
           )}
@@ -65,7 +65,7 @@ export default async function GiftsPage({
         {"suggestions" in result && result.suggestions && (
           <div className="space-y-4">
             {(result.suggestions as GiftSuggestion[]).map((gift, i) => (
-              <GiftCard key={i} gift={gift} index={i} />
+              <GiftCard key={i} gift={gift} index={i} isDark={theme.isDark} />
             ))}
           </div>
         )}

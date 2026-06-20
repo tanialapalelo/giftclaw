@@ -30,7 +30,7 @@ export default async function EditFriendPage({
           </p>
         </div>
 
-        <PixelCard>
+        <PixelCard dark>
           <FriendForm
             friendId={id}
             initialData={{
@@ -42,6 +42,7 @@ export default async function EditFriendPage({
               budgetMax: friend.budgetMax,
               notes: friend.notes,
               theme: friend.theme as ThemeKey,
+              currency: friend.currency,
               validUntil: friend.validUntil,
             }}
           />

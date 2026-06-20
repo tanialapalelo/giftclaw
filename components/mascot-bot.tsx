@@ -78,26 +78,58 @@ export function MascotBot({
 
   const isDark = theme.isDark;
 
+  // Lock scroll on both html and body (covers iOS Safari quirks)
+  useEffect(() => {
+    const el = document.documentElement;
+    const prev = {
+      html: el.style.overflow,
+      body: document.body.style.overflow,
+    };
+    el.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      el.style.overflow = prev.html;
+      document.body.style.overflow = prev.body;
+    };
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center pb-8 px-4"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(2px)" }}
+      className="flex items-end justify-center px-4 pb-10"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(0,0,0,0.93)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
+      }}
       onClick={handleNext}
     >
-      {/* X skip button */}
+      {/* Close button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onDismiss();
         }}
-        className={`absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border-2 font-pixel text-sm transition-all active:scale-90 ${
+        className={`absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border transition-all active:scale-90 ${
           isDark
             ? "border-yellow-400 bg-gray-900 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900"
             : "border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white"
         }`}
         aria-label="Skip intro"
       >
-        ✕
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <path d="M1 1L11 11M11 1L1 11" />
+        </svg>
       </button>
 
       {/* Stop propagation on inner card so only clicking the button dismisses */}
@@ -108,7 +140,7 @@ export function MascotBot({
         {/* Bot sprite */}
         <div className="flex justify-center mb-2">
           <div
-            className={`relative w-16 h-16 rounded-lg border-4 flex items-center justify-center text-3xl select-none ${
+            className={`relative w-16 h-16 rounded-lg border flex items-center justify-center text-3xl select-none ${
               isDark
                 ? "border-yellow-400 bg-gray-900"
                 : "border-gray-900 bg-white"
@@ -141,7 +173,7 @@ export function MascotBot({
 
         {/* Speech bubble */}
         <div
-          className={`relative rounded-2xl px-5 py-4 border-4 shadow-2xl ${
+          className={`relative rounded-2xl px-5 py-4 border shadow-2xl ${
             isDark
               ? "bg-gray-900 border-yellow-400 text-yellow-300"
               : "bg-white border-gray-900 text-gray-900"

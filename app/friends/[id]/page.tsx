@@ -9,6 +9,9 @@ import { isValidUUID } from "@/lib/utils";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
+import { MAX_ATTEMPTS } from "@/lib/constants";
+import { formatBudget } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/currency";
 
 export default async function FriendPage({
   params,
@@ -22,13 +25,13 @@ export default async function FriendPage({
   const friend = await getFriend(id);
   if (!friend) notFound();
 
-  const gameData = await getGameResultsForFriend(friend.id);
+  const gameData = await getGameResultsForFriend(friend.shareToken);
   const gameResults = gameData?.results ?? [];
   const totalPlays = gameData?.totalCount ?? 0;
   const hasResults = totalPlays > 0;
 
   const themeKey = friend.theme as keyof typeof THEMES;
-  const theme = THEMES[themeKey] ?? THEMES.soft;
+  const theme = THEMES[themeKey] ?? THEMES.bold;
 
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
   const deadlineText = validUntil
@@ -38,7 +41,13 @@ export default async function FriendPage({
         year: "numeric",
       })
     : null;
-  const isExpired = validUntil !== null && new Date() > validUntil;
+  const isExpired =
+    validUntil !== null &&
+    (() => {
+      const eod = new Date(validUntil);
+      eod.setHours(23, 59, 59, 999);
+      return new Date() > eod;
+    })();
 
   return (
     <PixelLayout theme={theme}>
@@ -59,24 +68,24 @@ export default async function FriendPage({
         </div>
 
         {/* Profile Card */}
-        <PixelCard>
+        <PixelCard dark={theme.isDark}>
           <div className="space-y-4">
-            <ProfileRow label="✦ Interests" tags={friend.interests} />
-            <ProfileRow label="🎮 Hobbies" tags={friend.hobbies} />
-            <ProfileRow label="✕ Dislikes" tags={friend.dislikes} />
+            <ProfileRow label="✦ Interests" tags={friend.interests} isDark={theme.isDark} />
+            <ProfileRow label="🎮 Hobbies" tags={friend.hobbies} isDark={theme.isDark} />
+            <ProfileRow label="✕ Dislikes" tags={friend.dislikes} isDark={theme.isDark} />
 
             {(friend.budgetMin || friend.budgetMax) && (
               <div>
-                <p className="font-pixel text-[9px] uppercase text-gray-500">
+                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
                   💰 Budget
                 </p>
-                <p className="mt-1 font-body text-sm text-gray-700">
+                <p className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}>
                   {friend.budgetMin
-                    ? `IDR ${friend.budgetMin.toLocaleString("id-ID")}`
+                    ? formatBudget(friend.budgetMin, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}{" "}
                   —{" "}
                   {friend.budgetMax
-                    ? `IDR ${friend.budgetMax.toLocaleString("id-ID")}`
+                    ? formatBudget(friend.budgetMax, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}
                 </p>
               </div>
@@ -84,10 +93,10 @@ export default async function FriendPage({
 
             {friend.notes && (
               <div>
-                <p className="font-pixel text-[9px] uppercase text-gray-500">
+                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
                   📝 Notes
                 </p>
-                <p className="mt-1 font-body text-sm text-gray-700">
+                <p className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}>
                   {friend.notes}
                 </p>
               </div>
@@ -95,12 +104,12 @@ export default async function FriendPage({
 
             {deadlineText && (
               <div>
-                <p className="font-pixel text-[9px] uppercase text-gray-500">
+                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
                   ⏰ Link Closes
                 </p>
                 <p
                   className={`mt-1 font-body text-sm ${
-                    isExpired ? "text-red-500" : "text-gray-700"
+                    isExpired ? "text-red-400" : theme.isDark ? "text-white/70" : "text-gray-700"
                   }`}
                 >
                   {deadlineText} {isExpired && "— EXPIRED"}
@@ -137,7 +146,7 @@ export default async function FriendPage({
                 {
                   n: "3",
                   label: "Wait for " + friend.name + " to Play",
-                  desc: "They pick up to 3 vibes — results appear below",
+                  desc: `They pick up to ${MAX_ATTEMPTS} vibes — results appear below`,
                   href: null,
                   done: false,
                 },
@@ -174,7 +183,7 @@ export default async function FriendPage({
           {/* Step 1 — always visible */}
           <Link href={`/friends/${id}/gifts`} className="block">
             <PixelButton className="w-full bg-white text-gray-900">
-              🎁 {hasResults ? "SEE GIFT IDEAS" : "STEP 1 — PREVIEW GIFT IDEAS"}
+              🎁 {hasResults ? "SEE GIFT IDEAS" : "STEP 1 - PREVIEW GIFT IDEAS"}
             </PixelButton>
           </Link>
 
@@ -190,7 +199,7 @@ export default async function FriendPage({
             <p className="font-body text-xs text-white/70">
               {hasResults
                 ? `${friend.name} can still play if they haven't used all 3 attempts.`
-                : `${friend.name} will play the claw machine — they won't see your budget or notes.`}
+                : `${friend.name} will play the claw machine and they won't see your budget or notes.`}
             </p>
             {isExpired ? (
               <p className="font-pixel text-[8px] text-red-300">
@@ -216,7 +225,7 @@ export default async function FriendPage({
               <p
                 className={`font-pixel text-[8px] tracking-widest ${theme.text.secondary}`}
               >
-                {friend.name.toUpperCase()} PLAYED ({totalPlays}/3)
+                {friend.name.toUpperCase()} PLAYED ({totalPlays}/{MAX_ATTEMPTS})
               </p>
               <div className="h-px flex-1 bg-white/10" />
             </div>
@@ -231,55 +240,66 @@ export default async function FriendPage({
             {gameResults.map((result) => {
               const vibe = getVibeFromGift(result.giftSnapshot);
               return (
-              <div
-                key={result.id}
-                className={`rounded-lg border-2 p-4 space-y-2 ${theme.prize.box}`}
-              >
-                {/* Grab number */}
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`font-pixel text-[7px] ${theme.text.secondary}`}
+                <div
+                  key={result.id}
+                  className={`rounded-lg border-2 p-4 space-y-2 ${theme.prize.box}`}
+                >
+                  {/* Grab number */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-pixel text-[7px] ${theme.text.secondary}`}
+                    >
+                      GRAB {result.grabIndex}
+                    </span>
+                    <span className="text-lg">{vibe.emoji}</span>
+                    <div className="flex gap-1 ml-auto">
+                      {vibe.moodTags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={`rounded-full px-2 py-0.5 font-body text-[10px] bg-black/10 ${theme.text.secondary}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* What the player saw (the clue) */}
+                  <div
+                    className={`rounded p-2 bg-black/5 border border-black/10`}
                   >
-                    GRAB {result.grabIndex}
-                  </span>
-                  <span className="text-lg">{vibe.emoji}</span>
-                  <div className="flex gap-1 ml-auto">
-                    {vibe.moodTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={`rounded-full px-2 py-0.5 font-body text-[10px] bg-black/10 ${theme.text.secondary}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    <p
+                      className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}
+                    >
+                      CLUE {friend.name.toUpperCase()} SAW:
+                    </p>
+                    <p
+                      className={`font-body text-xs italic leading-relaxed ${theme.text.secondary}`}
+                    >
+                      &ldquo;{vibe.tagline}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* Actual gift to buy */}
+                  <div>
+                    <p
+                      className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}
+                    >
+                      GIFT TO BUY:
+                    </p>
+                    <p
+                      className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
+                    >
+                      {result.giftSnapshot.name}
+                    </p>
+                    <p
+                      className={`font-body text-xs mt-0.5 ${theme.text.secondary}`}
+                    >
+                      {result.giftSnapshot.priceRange} ·{" "}
+                      {result.giftSnapshot.category}
+                    </p>
                   </div>
                 </div>
-
-                {/* What the player saw (the clue) */}
-                <div className={`rounded p-2 bg-black/5 border border-black/10`}>
-                  <p className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}>
-                    CLUE {friend.name.toUpperCase()} SAW:
-                  </p>
-                  <p className={`font-body text-xs italic leading-relaxed ${theme.text.secondary}`}>
-                    &ldquo;{vibe.tagline}&rdquo;
-                  </p>
-                </div>
-
-                {/* Actual gift to buy */}
-                <div>
-                  <p className={`font-pixel text-[7px] mb-1 ${theme.text.secondary}`}>
-                    GIFT TO BUY:
-                  </p>
-                  <p
-                    className={`font-pixel text-[9px] leading-relaxed ${theme.text.primary}`}
-                  >
-                    {result.giftSnapshot.name}
-                  </p>
-                  <p className={`font-body text-xs mt-0.5 ${theme.text.secondary}`}>
-                    {result.giftSnapshot.priceRange} · {result.giftSnapshot.category}
-                  </p>
-                </div>
-              </div>
               );
             })}
           </div>
@@ -302,9 +322,9 @@ export default async function FriendPage({
         <div className="text-center">
           <Link
             href="/"
-            className="font-body text-xs text-gray-400 hover:text-gray-600"
+            className={`inline-flex items-center gap-1.5 rounded-full border px-5 py-2 font-pixel text-[9px] uppercase tracking-wider transition-opacity hover:opacity-70 ${theme.text.secondary} border-current`}
           >
-            ← Back to home
+            ← HOME
           </Link>
         </div>
       </div>
@@ -312,16 +332,16 @@ export default async function FriendPage({
   );
 }
 
-function ProfileRow({ label, tags }: { label: string; tags: string[] }) {
+function ProfileRow({ label, tags, isDark = false }: { label: string; tags: string[]; isDark?: boolean }) {
   if (tags.length === 0) return null;
   return (
     <div>
-      <p className="font-pixel text-[9px] uppercase text-gray-500">{label}</p>
+      <p className={`font-pixel text-[9px] uppercase ${isDark ? "text-white/40" : "text-gray-500"}`}>{label}</p>
       <div className="mt-1 flex flex-wrap gap-2">
         {tags.map((tag, i) => (
           <span
             key={i}
-            className="rounded bg-gray-100 px-2 py-1 font-body text-xs text-gray-700"
+            className={`rounded px-2 py-1 font-body text-xs ${isDark ? "bg-white/10 text-white/75" : "bg-gray-100 text-gray-700"}`}
           >
             {tag}
           </span>

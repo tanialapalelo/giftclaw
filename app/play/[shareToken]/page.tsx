@@ -4,6 +4,7 @@ import { getFriendByShareToken } from "@/lib/actions/friend";
 import { getGiftSuggestions } from "@/lib/actions/gift";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { THEMES } from "@/lib/themes";
+import type { ThemeKey } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
 import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
@@ -42,11 +43,18 @@ export default async function PlayPage({
   const friend = await getFriendByShareToken(shareToken);
   if (!friend) notFound();
 
-  const theme = THEMES[friend.theme as keyof typeof THEMES] ?? THEMES.soft;
+  const themeKey: ThemeKey =
+    friend.theme in THEMES ? (friend.theme as ThemeKey) : "bold";
+  const theme = THEMES[themeKey];
 
   // Check if link has expired
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
-  const isExpired = validUntil !== null && new Date() > validUntil;
+  // Expired only after end of the chosen day, so "today" still allows access all day
+  const isExpired = validUntil !== null && (() => {
+    const eod = new Date(validUntil);
+    eod.setHours(23, 59, 59, 999);
+    return new Date() > eod;
+  })();
 
   if (isExpired) {
     return (
@@ -72,7 +80,7 @@ export default async function PlayPage({
     );
   }
 
-  const gameData = await getGameResultsForFriend(friend.id);
+  const gameData = await getGameResultsForFriend(shareToken);
   const alreadyPlayedCount = gameData?.totalCount ?? 0;
   const previousResults = gameData?.results ?? null;
 
@@ -94,10 +102,11 @@ export default async function PlayPage({
   return (
     <PixelLayout theme={theme}>
       <PlayClient
+        themeKey={themeKey}
         friend={friend}
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}
-        friendId={friend.id}
+        shareToken={shareToken}
         previousResults={previousResults}
         alreadyPlayedCount={alreadyPlayedCount}
         validUntil={validUntil?.toISOString() ?? null}

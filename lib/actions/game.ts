@@ -18,18 +18,24 @@ export type GameResultsResponse = {
 } | null;
 
 export async function getGameResultsForFriend(
-  friendId: string
+  shareToken: string
 ): Promise<GameResultsResponse> {
-  if (!isValidUUID(friendId)) return null;
+  if (!isValidUUID(shareToken)) return null;
 
   try {
+    const friend = await prisma.friend.findUnique({
+      where: { shareToken },
+      select: { id: true },
+    });
+    if (!friend) return null;
+
     const [results, totalCount] = await Promise.all([
       prisma.gameResult.findMany({
-        where: { friendId },
+        where: { friendId: friend.id },
         orderBy: { createdAt: "desc" },
         take: 10,
       }),
-      prisma.gameResult.count({ where: { friendId } }),
+      prisma.gameResult.count({ where: { friendId: friend.id } }),
     ]);
 
     return {

@@ -15,12 +15,12 @@ export default function NewFriendPage() {
             WHO&apos;S THE LUCKY FRIEND?
           </h1>
           <p className="mt-2 font-body text-gray-400">
-            Fill in the details — AI will suggest 5 perfect gifts 🎁
+            Fill in the details & AI will suggest 8 perfect gifts 🎁
           </p>
         </div>
 
         {/* Form */}
-        <PixelCard>
+        <PixelCard dark>
           <FriendForm />
         </PixelCard>
       </div>

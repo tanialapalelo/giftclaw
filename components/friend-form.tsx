@@ -7,6 +7,8 @@ import { saveProfileToLocalStorage } from "@/components/recent-profiles";
 import { ThemePicker } from "@/components/theme-picker";
 import { PixelButton } from "@/components/ui/pixel-button";
 import type { ThemeKey } from "@/lib/themes";
+import { CURRENCIES } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/currency";
 
 function TagInput({
   label,
@@ -31,14 +33,14 @@ function TagInput({
   };
   return (
     <div>
-      <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
+      <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
         {label}
       </label>
-      <div className="flex flex-wrap gap-2 rounded-lg border-2 border-gray-300 p-2 focus-within:border-gray-900">
+      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-700 bg-gray-800 p-2 focus-within:border-yellow-400">
         {tags.map((tag, i) => (
           <span
             key={i}
-            className="flex items-center gap-1 rounded bg-gray-900 px-2 py-1 font-body text-xs text-white"
+            className="flex items-center gap-1 rounded bg-gray-700 px-2 py-1 font-body text-xs text-white"
           >
             {tag}
             <button
@@ -56,10 +58,10 @@ function TagInput({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? placeholder : ""}
-          className="min-w-[120px] flex-1 bg-transparent font-body text-sm outline-none"
+          className="min-w-[120px] flex-1 bg-transparent font-body text-sm text-white placeholder:text-gray-500 outline-none"
         />
       </div>
-      <p className="mt-1 font-body text-[10px] text-gray-400">
+      <p className="mt-1 font-body text-[10px] text-gray-500">
         Press Enter or comma to add
       </p>
     </div>
@@ -79,13 +81,17 @@ export function FriendForm({
     budgetMax: number | null;
     notes: string | null;
     theme: ThemeKey;
+    currency?: string;
     validUntil?: string | Date | null;
   };
   friendId?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "soft");
+  const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "bold");
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    (initialData?.currency as CurrencyCode) ?? "IDR"
+  );
   const [interests, setInterests] = useState<string[]>(
     initialData?.interests ?? []
   );
@@ -119,6 +125,7 @@ export function FriendForm({
         : null,
       notes: (formData.get("notes") as string) || null,
       theme,
+      currency,
       validUntil: validUntil || null,
       _honeypot: formData.get("_honeypot") as string,
     };
@@ -155,7 +162,7 @@ export function FriendForm({
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
+        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
           Friend&apos;s Name
         </label>
         <input
@@ -163,7 +170,7 @@ export function FriendForm({
           type="text"
           placeholder="e.g. Sarah"
           defaultValue={initialData?.name ?? ""}
-          className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
         />
         {errors.name && (
           <p className="mt-1 font-body text-xs text-red-500">
@@ -208,8 +215,30 @@ export function FriendForm({
       />
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
-          Budget (IDR)
+        <label className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+          Budget Currency
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setCurrency(code)}
+              className={`rounded px-3 py-1.5 font-pixel text-[8px] transition-all border ${
+                currency === code
+                  ? "bg-yellow-400 border-yellow-400 text-gray-900"
+                  : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
+              }`}
+            >
+              {CURRENCIES[code].symbol} {code}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+          Budget ({currency})
         </label>
         <div className="flex items-center gap-3">
           <input
@@ -219,9 +248,9 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMin ?? ""}
-            className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
           />
-          <span className="font-body text-gray-400">—</span>
+          <span className="font-body text-gray-500">—</span>
           <input
             name="budgetMax"
             type="number"
@@ -229,13 +258,13 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMax ?? ""}
-            className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
+        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
           Extra Notes
         </label>
         <textarea
@@ -243,14 +272,14 @@ export function FriendForm({
           rows={3}
           placeholder="e.g. She just got promoted, loves vintage aesthetic..."
           defaultValue={initialData?.notes ?? ""}
-          className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
         />
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-700">
+        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
           Link Deadline{" "}
-          <span className="normal-case font-body text-gray-400">
+          <span className="normal-case font-body text-gray-500">
             (optional)
           </span>
         </label>
@@ -259,9 +288,9 @@ export function FriendForm({
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}
           min={new Date().toISOString().split("T")[0]}
-          className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-body text-sm outline-none focus:border-gray-900"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white outline-none focus:border-yellow-400 [color-scheme:dark]"
         />
-        <p className="mt-1 font-body text-[10px] text-gray-400">
+        <p className="mt-1 font-body text-[10px] text-gray-500">
           After this date the link will be locked — set it for when you plan to
           buy the gift
         </p>
@@ -275,9 +304,7 @@ export function FriendForm({
         className="w-full bg-gray-900 text-white hover:bg-gray-700"
       >
         {isPending
-          ? isEditMode
-            ? "SAVING..."
-            : "SAVING..."
+          ? "SAVING..."
           : isEditMode
             ? "✦ SAVE & REGENERATE GIFTS"
             : "FIND GIFTS ✦"}

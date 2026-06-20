@@ -50,7 +50,7 @@ describe("getFriend", () => {
       budgetMax: null,
       notes: null,
       theme: "soft",
-      editPinHash: null,
+      currency: "IDR",
       validUntil: null,
       createdAt: mockDate,
       updatedAt: mockDate,

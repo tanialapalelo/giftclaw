@@ -34,20 +34,28 @@ export async function getGiftSuggestions(friendId: string) {
     headersList.get("x-real-ip") ??
     "anonymous";
 
-  const { success, limit, remaining } = await rateLimiter.limit(ip);
+  try {
+    const { success, limit, remaining } = await rateLimiter.limit(ip);
 
-  if (!success) {
-    Sentry.addBreadcrumb({
-      category: "rate-limit",
-      message: `Rate limit hit by IP: ${ip}`,
-      level: "warning",
+    if (!success) {
+      Sentry.addBreadcrumb({
+        category: "rate-limit",
+        message: `Rate limit hit by IP: ${ip}`,
+        level: "warning",
+      });
+
+      return {
+        error: `Rate limit exceeded. Try again in a minute.`,
+        limit,
+        remaining,
+      };
+    }
+  } catch (redisError) {
+    // Redis unavailable (e.g. Upstash free-tier inactivity pause) — fail open
+    // so the app keeps working; Sentry logs it for visibility.
+    Sentry.captureException(redisError, {
+      tags: { action: "getGiftSuggestions", step: "rate-limit" },
     });
-
-    return {
-      error: `Rate limit exceeded. Try again in a minute.`,
-      limit,
-      remaining,
-    };
   }
 
   // Fetch the friend profile needed to build the Gemini prompt
@@ -70,6 +78,7 @@ export async function getGiftSuggestions(friendId: string) {
     budgetMax: friend.budgetMax,
     notes: friend.notes,
     theme: friend.theme,
+    currency: friend.currency ?? "IDR",
     createdAt: friend.createdAt.toISOString(),
   };
 
@@ -111,23 +120,29 @@ export async function getGiftSuggestions(friendId: string) {
 }
 
 export async function saveGameResult({
-  friendId,
+  shareToken,
   sessionId,
   grabIndex,
   giftSnapshot,
 }: {
-  friendId: string;
+  shareToken: string;
   sessionId: string;
   grabIndex: number;
   giftSnapshot: object;
 }) {
-  if (!isValidUUID(friendId) || !isValidUUID(sessionId))
+  if (!isValidUUID(shareToken) || !isValidUUID(sessionId))
     return { error: "Invalid ID" };
 
   try {
+    const friend = await prisma.friend.findUnique({
+      where: { shareToken },
+      select: { id: true },
+    });
+    if (!friend) return { error: "Friend not found" };
+
     await prisma.gameResult.create({
       data: {
-        friendId,
+        friendId: friend.id,
         sessionId,
         grabIndex,
         giftSnapshot,

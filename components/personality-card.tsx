@@ -102,7 +102,7 @@ export function PersonalityCard({
           someone prepared a gift for
         </p>
         <h1 className={`mt-1 font-pixel text-xl ${theme.text.primary}`}>
-          {name} ✦
+          {name}
         </h1>
       </div>
 

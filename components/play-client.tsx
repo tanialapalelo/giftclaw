@@ -1,9 +1,91 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useThemeMusic } from "@/hooks/use-theme-music";
+import { MusicToggle } from "./music-toggle";
+import type { ThemeKey } from "@/lib/themes";
+
+function DoneIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 56 56"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* 5-pointed star */}
+      <path
+        d="M28 4L33.5 19.5H50L37 29.5L41.5 45L28 35.5L14.5 45L19 29.5L6 19.5H22.5Z"
+        fill="currentColor"
+      />
+      {/* Inner shine */}
+      <path
+        d="M28 9L32 21H44L34.5 27.5L38 38.5L28 32L18 38.5L21.5 27.5L12 21H24Z"
+        fill="white"
+        opacity="0.18"
+      />
+      {/* Checkmark */}
+      <path
+        d="M19 27.5L25.5 34L37 22"
+        stroke="white"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Sparkle dots */}
+      <circle cx="6" cy="9" r="2" fill="currentColor" opacity="0.5" />
+      <circle cx="50" cy="9" r="1.5" fill="currentColor" opacity="0.4" />
+      <circle cx="48" cy="47" r="2" fill="currentColor" opacity="0.5" />
+      <circle cx="8" cy="47" r="1.5" fill="currentColor" opacity="0.4" />
+    </svg>
+  );
+}
+
+function GiftIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Box body */}
+      <rect
+        x="6"
+        y="22"
+        width="36"
+        height="22"
+        rx="2"
+        fill="currentColor"
+        opacity="0.9"
+      />
+      {/* Lid */}
+      <rect x="4" y="15" width="40" height="9" rx="2" fill="currentColor" />
+      {/* Ribbon vertical */}
+      <rect x="21" y="15" width="6" height="29" fill="white" opacity="0.35" />
+      {/* Ribbon horizontal on lid */}
+      <rect x="4" y="18" width="40" height="3" fill="white" opacity="0.35" />
+      {/* Bow left loop */}
+      <path
+        d="M24 15 C18 8 10 8 12 14 C14 18 22 16 24 15Z"
+        fill="white"
+        opacity="0.8"
+      />
+      {/* Bow right loop */}
+      <path
+        d="M24 15 C30 8 38 8 36 14 C34 18 26 16 24 15Z"
+        fill="white"
+        opacity="0.8"
+      />
+      {/* Bow knot */}
+      <circle cx="24" cy="15" r="2.5" fill="white" />
+    </svg>
+  );
+}
 import { PersonalityCard } from "./personality-card";
 import { ClawGame } from "./claw-machine/claw-game";
 import { MascotBot } from "./mascot-bot";
+import { GrabHistory } from "./grab-history";
 import type { Theme } from "@/lib/themes";
 import type { GiftSuggestion } from "@/types";
 import type { GameResultWithGift } from "@/lib/actions/game";
@@ -28,7 +110,9 @@ function AlreadyPlayedView({
 
   return (
     <div className="animate-fade-in space-y-5 text-center">
-      <div className="text-4xl">🎯</div>
+      <div className={`flex justify-center ${theme.text.accent}`}>
+        <DoneIcon className="w-14 h-14" />
+      </div>
       <div>
         <p className={`font-pixel text-xs ${theme.text.primary}`}>
           YOU'VE ALREADY PICKED!
@@ -95,15 +179,17 @@ function AlreadyPlayedView({
 }
 
 export function PlayClient({
+  themeKey,
   friend,
   theme,
   gifts,
-  friendId,
+  shareToken,
   previousResults,
   alreadyPlayedCount,
   validUntil,
   maxAttempts,
 }: {
+  themeKey: ThemeKey;
   friend: {
     name: string;
     interests: string[];
@@ -111,7 +197,7 @@ export function PlayClient({
   };
   theme: Theme;
   gifts: GiftSuggestion[];
-  friendId: string;
+  shareToken: string;
   previousResults: GameResultWithGift[] | null;
   alreadyPlayedCount: number;
   validUntil: string | null;
@@ -119,11 +205,18 @@ export function PlayClient({
 }) {
   const [botDismissed, setBotDismissed] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const { start, toggle, isMuted } = useThemeMusic(themeKey);
+
+  const handleStartGame = useCallback(() => {
+    setGameStarted(true);
+    start();
+  }, [start]);
 
   const isLocked = alreadyPlayedCount >= maxAttempts;
+  const hasPicksSoFar = alreadyPlayedCount > 0;
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* MascotBot overlay */}
       {!botDismissed && (
         <MascotBot
@@ -140,31 +233,46 @@ export function PlayClient({
           theme={theme}
           validUntil={validUntil}
         />
-      ) : !gameStarted ? (
+      ) : gameStarted ? (
+        <>
+          <div className="relative text-center space-y-1">
+            <div className={`flex justify-center ${theme.text.accent}`}>
+              <GiftIcon className="w-10 h-10" />
+            </div>
+            <h1 className={`font-pixel text-lg ${theme.text.primary}`}>
+              {friend.name.toUpperCase()}
+            </h1>
+            <p className={`font-body text-xs ${theme.text.secondary}`}>
+              play the claw machine to reveal your gift
+            </p>
+            <div className="absolute top-0 right-0">
+              <MusicToggle isMuted={isMuted} onToggle={toggle} theme={theme} />
+            </div>
+          </div>
+          <ClawGame
+            gifts={gifts}
+            theme={theme}
+            shareToken={shareToken}
+            previousGrabCount={alreadyPlayedCount}
+            previousResults={previousResults ?? undefined}
+          />
+        </>
+      ) : hasPicksSoFar ? (
+        <GrabHistory
+          shareToken={shareToken}
+          localHistory={previousResults?.map((r) => r.giftSnapshot) ?? []}
+          theme={theme}
+          canPlayAgain={true}
+          onPlayAgain={handleStartGame}
+        />
+      ) : (
         <PersonalityCard
           name={friend.name}
           interests={friend.interests}
           hobbies={friend.hobbies}
           theme={theme}
-          onPlay={() => setGameStarted(true)}
+          onPlay={handleStartGame}
         />
-      ) : (
-        <>
-          <div className="text-center space-y-1">
-            <h1 className={`font-pixel text-lg ${theme.text.primary}`}>
-              {friend.name} 🎁
-            </h1>
-            <p className={`font-body text-xs ${theme.text.secondary}`}>
-              Play the claw machine to reveal your gift!
-            </p>
-          </div>
-          <ClawGame
-            gifts={gifts}
-            theme={theme}
-            friendId={friendId}
-            previousGrabCount={alreadyPlayedCount}
-          />
-        </>
       )}
     </div>
   );

@@ -9,6 +9,7 @@ export interface FriendProfile {
   budgetMax: number | null;
   notes: string | null;
   theme: string;
+  currency: string;
   createdAt: string;
 }
 

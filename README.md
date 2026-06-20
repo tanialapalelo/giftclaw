@@ -28,20 +28,20 @@ Tell us about your friend → AI suggests 8 personalized gifts → Share the cla
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS v4 |
-| Database | PostgreSQL via [Supabase](https://supabase.com) |
-| ORM | [Prisma 7](https://prisma.io) |
-| AI | [Google Gemini 2.5 Flash](https://ai.google.dev) |
-| Rate Limiting | [Upstash Redis](https://upstash.com) |
-| Error Tracking | [Sentry](https://sentry.io) |
-| Analytics | [Vercel Analytics](https://vercel.com/analytics) + Speed Insights |
-| Testing | Vitest (unit) + Playwright (e2e) |
-| CI | GitHub Actions |
-| Deployment | [Vercel](https://vercel.com) |
+| Layer          | Technology                                                        |
+| -------------- | ----------------------------------------------------------------- |
+| Framework      | [Next.js 16](https://nextjs.org) (App Router, Turbopack)          |
+| Language       | TypeScript (strict)                                               |
+| Styling        | Tailwind CSS v4                                                   |
+| Database       | PostgreSQL via [Supabase](https://supabase.com)                   |
+| ORM            | [Prisma 7](https://prisma.io)                                     |
+| AI             | [Google Gemini 2.5 Flash](https://ai.google.dev)                  |
+| Rate Limiting  | [Upstash Redis](https://upstash.com)                              |
+| Error Tracking | [Sentry](https://sentry.io)                                       |
+| Analytics      | [Vercel Analytics](https://vercel.com/analytics) + Speed Insights |
+| Testing        | Vitest (unit) + Playwright (e2e)                                  |
+| CI             | GitHub Actions                                                    |
+| Deployment     | [Vercel](https://vercel.com)                                      |
 
 ---
 
@@ -254,6 +254,7 @@ git push origin feat/your-feature
 ```
 
 **Recommended branch protection rules** for `main` (GitHub → Settings → Branches):
+
 - ✅ Require a pull request before merging
 - ✅ Require status checks: `quality` and `build`
 - ✅ Require branches to be up to date before merging
@@ -262,12 +263,12 @@ git push origin feat/your-feature
 
 ## 🎨 Themes
 
-| Theme | Vibe | Colors |
-|-------|------|--------|
-| ✨ Soft & Elegant | Pastel, romantic | Pink, rose |
-| ⚡ Bold & Cool | Dark, cyberpunk | Dark slate, cyan neon |
-| 🧸 Cute & Playful | Fun, colorful | Purple, fuchsia |
-| 🎪 Classic Arcade | Retro, nostalgic | Dark, yellow neon |
+| Theme             | Vibe             | Colors                |
+| ----------------- | ---------------- | --------------------- |
+| ✨ Soft & Elegant | Pastel, romantic | Pink, rose            |
+| ⚡ Bold & Cool    | Dark, cyberpunk  | Dark slate, cyan neon |
+| 🧸 Cute & Playful | Fun, colorful    | Purple, fuchsia       |
+| 🎪 Classic Arcade | Retro, nostalgic | Dark, yellow neon     |
 
 ---
 
@@ -278,4 +279,3 @@ MIT — feel free to fork and build your own version!
 ---
 
 <p align="center">Built with ❤️ for gifting season</p>
-

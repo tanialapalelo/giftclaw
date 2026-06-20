@@ -62,16 +62,40 @@ const RIBBON_COLORS = [
   "bg-teal-400",
 ];
 
-const BOX_COLORS = [
-  "bg-red-100 border-red-400",
-  "bg-yellow-100 border-yellow-400",
-  "bg-sky-100 border-sky-400",
-  "bg-emerald-100 border-emerald-400",
-  "bg-purple-100 border-purple-400",
-  "bg-pink-100 border-pink-400",
-  "bg-orange-100 border-orange-400",
-  "bg-teal-100 border-teal-400",
-];
+const BOX_COLORS: Record<string, string[]> = {
+  default: [
+    "bg-red-100 border-red-400",
+    "bg-yellow-100 border-yellow-400",
+    "bg-sky-100 border-sky-400",
+    "bg-emerald-100 border-emerald-400",
+    "bg-purple-100 border-purple-400",
+    "bg-pink-100 border-pink-400",
+    "bg-orange-100 border-orange-400",
+    "bg-teal-100 border-teal-400",
+  ],
+  // Soft & Elegant: rose-gold palette, saturated enough for light interior
+  warm: [
+    "bg-rose-300 border-rose-600",
+    "bg-amber-300 border-amber-600",
+    "bg-pink-300 border-pink-600",
+    "bg-purple-300 border-purple-600",
+    "bg-orange-300 border-orange-600",
+    "bg-red-300 border-red-600",
+    "bg-violet-300 border-violet-600",
+    "bg-fuchsia-300 border-fuchsia-600",
+  ],
+  // Cute & Playful: vivid candy colors, pop on yellow/pink interior
+  candy: [
+    "bg-fuchsia-400 border-fuchsia-700",
+    "bg-cyan-300 border-cyan-600",
+    "bg-lime-300 border-lime-600",
+    "bg-orange-400 border-orange-700",
+    "bg-violet-400 border-violet-700",
+    "bg-pink-400 border-pink-700",
+    "bg-yellow-300 border-yellow-600",
+    "bg-red-400 border-red-700",
+  ],
+};
 
 export function PrizeBox({
   isLifted,
@@ -80,6 +104,7 @@ export function PrizeBox({
   category,
   giftEmoji,
   sizePx = 52,
+  boxStyle = "default",
 }: {
   isLifted: boolean;
   isTumbling?: boolean;
@@ -88,10 +113,12 @@ export function PrizeBox({
   /** AI-assigned emoji for this specific gift; overrides category fallback */
   giftEmoji?: string;
   sizePx?: number;
+  boxStyle?: string;
 }) {
   const emoji = giftEmoji ?? getCategoryEmoji(category);
   const ribbon = RIBBON_COLORS[index % RIBBON_COLORS.length];
-  const box = BOX_COLORS[index % BOX_COLORS.length];
+  const colors = BOX_COLORS[boxStyle] ?? BOX_COLORS.default!;
+  const box = colors[index % colors.length];
   const bowSize = Math.round(sizePx * 0.3);
   const emojiSize = sizePx < 46 ? "text-base" : "text-xl";
 

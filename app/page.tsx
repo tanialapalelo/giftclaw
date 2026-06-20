@@ -23,12 +23,39 @@ export default async function HomePage() {
 
       <div className="relative mx-auto max-w-lg px-4 py-12">
         {/* Floating pixel particles */}
-        <span className="pointer-events-none absolute top-6 left-4 font-pixel text-[10px] text-yellow-400 animate-blink" style={{ animationDelay: "0s" }}>✦</span>
-        <span className="pointer-events-none absolute top-20 right-6 font-pixel text-[8px] text-pink-400 animate-blink" style={{ animationDelay: "0.5s" }}>★</span>
-        <span className="pointer-events-none absolute top-40 left-8 font-pixel text-[8px] text-cyan-400 animate-blink" style={{ animationDelay: "1s" }}>◆</span>
-        <span className="pointer-events-none absolute top-64 right-10 font-pixel text-[10px] text-purple-400 animate-blink" style={{ animationDelay: "1.5s" }}>✦</span>
-        <span className="pointer-events-none absolute top-32 right-16 font-pixel text-[6px] text-yellow-300 animate-drift">★</span>
-        <span className="pointer-events-none absolute top-52 left-16 font-pixel text-[6px] text-pink-300 animate-drift" style={{ animationDelay: "1.2s" }}>◆</span>
+        <span
+          className="pointer-events-none absolute top-6 left-4 font-pixel text-[10px] text-yellow-400 animate-blink"
+          style={{ animationDelay: "0s" }}
+        >
+          ✦
+        </span>
+        <span
+          className="pointer-events-none absolute top-20 right-6 font-pixel text-[8px] text-pink-400 animate-blink"
+          style={{ animationDelay: "0.5s" }}
+        >
+          ★
+        </span>
+        <span
+          className="pointer-events-none absolute top-40 left-8 font-pixel text-[8px] text-cyan-400 animate-blink"
+          style={{ animationDelay: "1s" }}
+        >
+          ◆
+        </span>
+        <span
+          className="pointer-events-none absolute top-64 right-10 font-pixel text-[10px] text-purple-400 animate-blink"
+          style={{ animationDelay: "1.5s" }}
+        >
+          ✦
+        </span>
+        <span className="pointer-events-none absolute top-32 right-16 font-pixel text-[6px] text-yellow-300 animate-drift">
+          ★
+        </span>
+        <span
+          className="pointer-events-none absolute top-52 left-16 font-pixel text-[6px] text-pink-300 animate-drift"
+          style={{ animationDelay: "1.2s" }}
+        >
+          ◆
+        </span>
 
         {/* ── MARQUEE TICKER ── */}
         <div className="mb-8 overflow-hidden rounded border border-yellow-400/50 bg-yellow-400/5 py-2 neon-yellow">

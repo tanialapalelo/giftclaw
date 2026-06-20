@@ -26,7 +26,7 @@ type GameAction =
   | { type: "SHOW_RESULT" }
   | { type: "RESET"; startX: number };
 
-const CLAW_STEP = 12;
+const CLAW_STEP = 5;
 
 export const CHUTE_OFFSET = 11;
 

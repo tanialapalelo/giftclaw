@@ -29,6 +29,7 @@ export async function createFriend(formData: unknown) {
       budgetMax: parsed.data.budgetMax,
       notes: parsed.data.notes,
       theme: parsed.data.theme,
+      currency: parsed.data.currency,
       validUntil: parsed.data.validUntil
         ? new Date(parsed.data.validUntil)
         : null,
@@ -103,6 +104,7 @@ export async function updateFriend(id: string, formData: unknown) {
       budgetMax: parsed.data.budgetMax,
       notes: parsed.data.notes,
       theme: parsed.data.theme,
+      currency: parsed.data.currency,
       validUntil: parsed.data.validUntil
         ? new Date(parsed.data.validUntil)
         : null,

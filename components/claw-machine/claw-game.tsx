@@ -6,13 +6,14 @@ import { MachineFrame } from "./machine-frame";
 import { Claw } from "./claw";
 import { PrizeBox } from "./prize-box";
 import { RevealPanel } from "./reveal-panel";
+import { AttemptIndicator } from "./attempt-indicator";
+import { GameControls } from "./game-controls";
 import { GrabHistory } from "@/components/grab-history";
-import { PixelButton } from "@/components/ui/pixel-button";
 import type { GiftSuggestion } from "@/types";
 import type { Theme } from "@/lib/themes";
+import type { GameResultWithGift } from "@/lib/actions/game";
 import { saveGameResult } from "@/lib/actions/gift";
 import { MAX_ATTEMPTS, COPIES } from "@/lib/constants";
-import { getVibeFromGift } from "@/lib/vibe";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -34,13 +35,15 @@ function hash(a: number, b: number, c: number): number {
 export function ClawGame({
   gifts,
   theme,
-  friendId,
+  shareToken,
   previousGrabCount = 0,
+  previousResults,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
-  friendId: string;
+  shareToken: string;
   previousGrabCount?: number;
+  previousResults?: GameResultWithGift[];
 }) {
   const sessionId = useRef(crypto.randomUUID());
   const [shuffleKey, setShuffleKey] = useState(0);
@@ -48,6 +51,7 @@ export function ClawGame({
   const [grabHistory, setGrabHistory] = useState<GiftSuggestion[]>([]);
   const [grabCounts, setGrabCounts] = useState<Map<string, number>>(new Map());
   const [showHistory, setShowHistory] = useState(false);
+  const [midGameHistory, setMidGameHistory] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [lockedGrabKey, setLockedGrabKey] = useState<string | null>(null);
   // Chute-drop animation: show gift emoji dropping from chute before reveal panel
@@ -126,7 +130,9 @@ export function ClawGame({
           xPct,
           yPx,
           rot,
-          zIndex: Math.round(yPx * 10) + col,
+          // Items at top of pile (low yPx = near the claw) get higher z-index
+          // so they render in front visually AND the grab logic picks them first
+          zIndex: Math.round((PILE_H - yPx) * 10) + col,
         };
       });
     });
@@ -141,30 +147,34 @@ export function ClawGame({
   const handleGrab = useCallback(() => {
     if (phase !== "moving") return;
     const clawInZone = ((clawX - CHUTE_OFFSET) / (100 - CHUTE_OFFSET)) * 100;
-    let nearestCol = 0;
+    let nearestShuffledIdx = 0;
     let nearestDist = Infinity;
     let nearestKey: string | null = null;
-    let nearestXPct = 50; // default to mid-zone
-    for (let col = 0; col < shuffledGifts.length; col++) {
+    let nearestXPct = 50;
+
+    // Match by gift.name so indices stay correct after some gifts are fully grabbed.
+    // displayItems use stableGifts col indices; shuffledGifts is a filtered subset,
+    // so iterating shuffledGifts and finding display items by name avoids the mismatch.
+    for (let i = 0; i < shuffledGifts.length; i++) {
+      const gift = shuffledGifts[i];
       const copies = displayItems.filter(
-        (item) => item.col === col && item.key !== lockedGrabKey
+        (item) => item.gift.name === gift.name && item.key !== lockedGrabKey
       );
       if (!copies.length) continue;
       const topCopy = copies.reduce((a, b) => (a.yPx < b.yPx ? a : b));
       const dist = Math.abs(topCopy.xPct - clawInZone);
       if (dist < nearestDist) {
         nearestDist = dist;
-        nearestCol = col;
+        nearestShuffledIdx = i;
         nearestKey = topCopy.key;
         nearestXPct = topCopy.xPct;
       }
     }
     if (nearestKey) setLockedGrabKey(nearestKey);
-    // Convert prize-zone % → container % so claw visually goes to the actual box
     const exactContainerX =
       CHUTE_OFFSET + (nearestXPct / 100) * (100 - CHUTE_OFFSET);
-    grab(nearestCol, exactContainerX);
-  }, [phase, clawX, shuffledGifts.length, displayItems, lockedGrabKey, grab]);
+    grab(nearestShuffledIdx, exactContainerX);
+  }, [phase, clawX, shuffledGifts, displayItems, lockedGrabKey, grab]);
 
   const currentGift =
     grabbedPrize !== null ? (shuffledGifts[grabbedPrize] ?? null) : null;
@@ -178,9 +188,9 @@ export function ClawGame({
   const canTryAgain = totalAttemptsSoFar < MAX_ATTEMPTS;
 
   const isHoldingPrize = phase === "grabbing" || phase === "lifting";
-  // Use the actual gift's emoji so claw shows the same icon as the box being grabbed
+  // Use the gift's own emoji (same as the box in the machine) for visual consistency
   const heldEmoji =
-    isHoldingPrize && currentGift ? getVibeFromGift(currentGift).emoji : null;
+    isHoldingPrize && currentGift ? (currentGift.emoji ?? "🎁") : null;
 
   // grabsCompleted = saved grabs; currentAttempt = the one being played right now (during moving)
   const grabsCompleted = totalAttemptsSoFar;
@@ -229,7 +239,7 @@ export function ClawGame({
       // Allow the same gift name multiple times — grabHistory.length drives the attempt counter
       setGrabHistory((prev) => [...prev, currentGift]);
       void saveGameResult({
-        friendId,
+        shareToken,
         sessionId: sessionId.current,
         grabIndex,
         giftSnapshot: currentGift,
@@ -272,9 +282,16 @@ export function ClawGame({
     setShowHistory(true);
   };
 
-  // Called from GrabHistory "KEEP PLAYING" — grabCount already incremented by handleViewPicks
+  const handleViewHistoryMidGame = () => {
+    setMidGameHistory(true);
+    setShowHistory(true);
+  };
+
+  // Called from GrabHistory "KEEP PLAYING"
+  // If opened mid-game (no grab happened), just close — no reshuffle needed
   const handleKeepPlaying = () => {
-    doReset();
+    if (!midGameHistory) doReset();
+    setMidGameHistory(false);
     setShowHistory(false);
   };
 
@@ -291,11 +308,20 @@ export function ClawGame({
     return () => window.removeEventListener("keydown", handleKey);
   }, [moveLeft, moveRight, handleGrab]);
 
+  // Combine previous sessions + current session so GrabHistory shows all picks immediately
+  const combinedHistory = [
+    ...(previousResults ?? [])
+      .slice()
+      .sort((a, b) => a.grabIndex - b.grabIndex)
+      .map((r) => r.giftSnapshot),
+    ...grabHistory,
+  ];
+
   if (showHistory) {
     return (
       <GrabHistory
-        friendId={friendId}
-        localHistory={grabHistory}
+        shareToken={shareToken}
+        localHistory={combinedHistory}
         theme={theme}
         canPlayAgain={canTryAgain && remainingAttempts > 0}
         onPlayAgain={handleKeepPlaying}
@@ -303,69 +329,18 @@ export function ClawGame({
     );
   }
 
-  // Emoji to show in chute-drop animation
-  const chuteEmoji = currentGiftRef.current
-    ? getVibeFromGift(currentGiftRef.current).emoji
-    : "🎁";
+  const chuteEmoji = currentGiftRef.current?.emoji ?? "🎁";
 
   return (
     <div className={`space-y-4 ${shaking ? "animate-screenshake" : ""}`}>
-      {/* Attempt indicator */}
-      <div className="flex items-center justify-between px-1 h-6">
-        <span className={`font-pixel text-[7px] ${theme.text.secondary}`}>
-          ATTEMPT {Math.min(currentAttempt, MAX_ATTEMPTS)}/{MAX_ATTEMPTS}
-        </span>
-
-        <div className="h-6 flex items-center">
-          {phase === "moving" && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ◄ MOVE THE CLAW ►
-            </p>
-          )}
-          {phase === "dropping" && (
-            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
-              ↓ DROPPING...
-            </p>
-          )}
-          {phase === "grabbing" && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ✦ GRABBING!
-            </p>
-          )}
-          {phase === "lifting" && (
-            <p className={`font-pixel text-[8px] ${theme.text.accent}`}>
-              ↑ LIFTING...
-            </p>
-          )}
-          {phase === "result" && chuteDropActive && (
-            <p
-              className={`font-pixel text-[8px] animate-blink ${theme.text.accent}`}
-            >
-              ✦ OPENING...
-            </p>
-          )}
-        </div>
-
-        {/* Attempt dots */}
-        <div className="flex gap-1">
-          {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                i < grabsCompleted
-                  ? theme.controls.grab
-                  : i === grabsCompleted
-                    ? "bg-white/70 animate-blink"
-                    : "bg-white/20"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      <AttemptIndicator
+        phase={phase}
+        currentAttempt={currentAttempt}
+        grabsCompleted={grabsCompleted}
+        maxAttempts={MAX_ATTEMPTS}
+        chuteDropActive={chuteDropActive}
+        theme={theme}
+      />
 
       <MachineFrame
         theme={theme}
@@ -409,6 +384,7 @@ export function ClawGame({
                 category={item.gift.category}
                 giftEmoji={item.gift.emoji}
                 sizePx={boxPx}
+                boxStyle={theme.prize.boxStyle}
               />
             </div>
           ))}
@@ -454,60 +430,22 @@ export function ClawGame({
         />
       )}
 
-      {/* Controls */}
       {phase !== "result" && (
-        <div className="flex flex-col items-center gap-2">
-          <div
-            className={`mx-auto flex w-fit items-center justify-center gap-3 px-6 py-3 rounded-2xl border-2 border-black/30 shadow-[0_4px_0_rgba(0,0,0,0.3)] ${theme.machine.controlPanel}`}
-          >
-            <PixelButton
-              onClick={moveLeft}
-              disabled={phase !== "moving"}
-              className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
-            >
-              ◀
-            </PixelButton>
-            <div className="flex flex-col items-center">
-              <PixelButton
-                onClick={handleGrab}
-                disabled={phase !== "moving"}
-                className={`px-8 ${theme.controls.grab} ${phase === "moving" ? "active:scale-90" : ""} active:brightness-75 transition-all`}
-              >
-                GRAB
-              </PixelButton>
-              {phase === "moving" && (
-                <span className="font-pixel text-[8px] text-white/70 animate-blink mt-1">
-                  ♪ SPACE
-                </span>
-              )}
-            </div>
-            <PixelButton
-              onClick={moveRight}
-              disabled={phase !== "moving"}
-              className={`text-lg active:scale-90 active:brightness-75 transition-all ${theme.controls.move}`}
-            >
-              ▶
-            </PixelButton>
-          </div>
-          {phase === "moving" && (
-            <button
-              onClick={() => {
-                setIsTumbling(true);
-                setShuffleKey((k) => k + 1);
-                setTimeout(() => setIsTumbling(false), 800);
-              }}
-              className={`flex items-center gap-1.5 rounded-xl border-2 border-black/20 px-4 py-1.5 font-pixel text-[8px] tracking-widest shadow transition-all active:scale-95 active:brightness-75 ${theme.machine.controlPanel} text-white hover:brightness-110`}
-            >
-              🔀 SHUFFLE
-            </button>
-          )}
-        </div>
-      )}
-
-      {phase === "moving" && (
-        <p className="text-center font-body text-[10px] text-gray-400">
-          ← → arrow keys to move · space to grab
-        </p>
+        <GameControls
+          phase={phase}
+          onMoveLeft={moveLeft}
+          onMoveRight={moveRight}
+          onGrab={handleGrab}
+          onShuffle={() => {
+            setIsTumbling(true);
+            setShuffleKey((k) => k + 1);
+            setTimeout(() => setIsTumbling(false), 800);
+          }}
+          onViewHistory={handleViewHistoryMidGame}
+          pickCount={previousGrabCount + grabHistory.length}
+          maxAttempts={MAX_ATTEMPTS}
+          theme={theme}
+        />
       )}
     </div>
   );

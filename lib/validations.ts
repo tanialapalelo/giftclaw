@@ -29,6 +29,8 @@ export const friendSchema = z
 
     theme: z.enum(["soft", "bold", "cute", "classic"]).default("soft"),
 
+    currency: z.enum(["IDR", "USD", "SGD", "MYR", "EUR", "GBP"]).default("IDR"),
+
     validUntil: z.string().nullable().optional(),
 
     // Honeypot — only bots will fill this field, zod validates that it's always an empty string
