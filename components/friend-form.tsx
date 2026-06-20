@@ -7,6 +7,8 @@ import { saveProfileToLocalStorage } from "@/components/recent-profiles";
 import { ThemePicker } from "@/components/theme-picker";
 import { PixelButton } from "@/components/ui/pixel-button";
 import type { ThemeKey } from "@/lib/themes";
+import { CURRENCIES } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/currency";
 
 function TagInput({
   label,
@@ -79,6 +81,7 @@ export function FriendForm({
     budgetMax: number | null;
     notes: string | null;
     theme: ThemeKey;
+    currency?: string;
     validUntil?: string | Date | null;
   };
   friendId?: string;
@@ -86,6 +89,9 @@ export function FriendForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [theme, setTheme] = useState<ThemeKey>(initialData?.theme ?? "bold");
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    (initialData?.currency as CurrencyCode) ?? "IDR"
+  );
   const [interests, setInterests] = useState<string[]>(
     initialData?.interests ?? []
   );
@@ -119,6 +125,7 @@ export function FriendForm({
         : null,
       notes: (formData.get("notes") as string) || null,
       theme,
+      currency,
       validUntil: validUntil || null,
       _honeypot: formData.get("_honeypot") as string,
     };
@@ -208,8 +215,30 @@ export function FriendForm({
       />
 
       <div>
+        <label className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+          Budget Currency
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setCurrency(code)}
+              className={`rounded px-3 py-1.5 font-pixel text-[8px] transition-all border ${
+                currency === code
+                  ? "bg-yellow-400 border-yellow-400 text-gray-900"
+                  : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
+              }`}
+            >
+              {CURRENCIES[code].symbol} {code}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
-          Budget (IDR)
+          Budget ({currency})
         </label>
         <div className="flex items-center gap-3">
           <input

@@ -10,6 +10,8 @@ import { CopyLinkButton } from "@/components/copy-link-button";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
 import { MAX_ATTEMPTS } from "@/lib/constants";
+import { formatBudget } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/currency";
 
 export default async function FriendPage({
   params,
@@ -79,11 +81,11 @@ export default async function FriendPage({
                 </p>
                 <p className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}>
                   {friend.budgetMin
-                    ? `IDR ${friend.budgetMin.toLocaleString("id-ID")}`
+                    ? formatBudget(friend.budgetMin, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}{" "}
-                  -{" "}
+                  —{" "}
                   {friend.budgetMax
-                    ? `IDR ${friend.budgetMax.toLocaleString("id-ID")}`
+                    ? formatBudget(friend.budgetMax, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}
                 </p>
               </div>

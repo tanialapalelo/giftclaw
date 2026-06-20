@@ -21,6 +21,7 @@ model Friend {
   budgetMax   Int?      @map("budget_max")
   notes       String?
   theme       String    @default("soft")
+  currency    String    @default("IDR")
   validUntil  DateTime? @map("valid_until")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

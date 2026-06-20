@@ -78,6 +78,7 @@ export async function getGiftSuggestions(friendId: string) {
     budgetMax: friend.budgetMax,
     notes: friend.notes,
     theme: friend.theme,
+    currency: friend.currency ?? "IDR",
     createdAt: friend.createdAt.toISOString(),
   };
 

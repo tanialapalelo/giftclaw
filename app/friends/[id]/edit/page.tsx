@@ -42,6 +42,7 @@ export default async function EditFriendPage({
               budgetMax: friend.budgetMax,
               notes: friend.notes,
               theme: friend.theme as ThemeKey,
+              currency: friend.currency,
               validUntil: friend.validUntil,
             }}
           />
