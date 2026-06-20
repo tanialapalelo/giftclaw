@@ -4,6 +4,7 @@ import { getFriendByShareToken } from "@/lib/actions/friend";
 import { getGiftSuggestions } from "@/lib/actions/gift";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { THEMES } from "@/lib/themes";
+import type { ThemeKey } from "@/lib/themes";
 import { PixelLayout } from "@/components/pixel-layout";
 import { isValidUUID } from "@/lib/utils";
 import type { GiftSuggestion } from "@/types";
@@ -42,7 +43,9 @@ export default async function PlayPage({
   const friend = await getFriendByShareToken(shareToken);
   if (!friend) notFound();
 
-  const theme = THEMES[friend.theme as keyof typeof THEMES] ?? THEMES.bold;
+  const themeKey: ThemeKey =
+    friend.theme in THEMES ? (friend.theme as ThemeKey) : "bold";
+  const theme = THEMES[themeKey];
 
   // Check if link has expired
   const validUntil = friend.validUntil ? new Date(friend.validUntil) : null;
@@ -99,6 +102,7 @@ export default async function PlayPage({
   return (
     <PixelLayout theme={theme}>
       <PlayClient
+        themeKey={themeKey}
         friend={friend}
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}

@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useThemeMusic } from "@/hooks/use-theme-music";
+import { MusicToggle } from "./music-toggle";
+import type { ThemeKey } from "@/lib/themes";
 
 function DoneIcon({ className }: { className?: string }) {
   return (
@@ -176,6 +179,7 @@ function AlreadyPlayedView({
 }
 
 export function PlayClient({
+  themeKey,
   friend,
   theme,
   gifts,
@@ -185,6 +189,7 @@ export function PlayClient({
   validUntil,
   maxAttempts,
 }: {
+  themeKey: ThemeKey;
   friend: {
     name: string;
     interests: string[];
@@ -200,6 +205,12 @@ export function PlayClient({
 }) {
   const [botDismissed, setBotDismissed] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const { start, toggle, isMuted } = useThemeMusic(themeKey);
+
+  const handleStartGame = useCallback(() => {
+    setGameStarted(true);
+    start();
+  }, [start]);
 
   const isLocked = alreadyPlayedCount >= maxAttempts;
   const hasPicksSoFar = alreadyPlayedCount > 0;
@@ -224,7 +235,7 @@ export function PlayClient({
         />
       ) : gameStarted ? (
         <>
-          <div className="text-center space-y-1">
+          <div className="relative text-center space-y-1">
             <div className={`flex justify-center ${theme.text.accent}`}>
               <GiftIcon className="w-10 h-10" />
             </div>
@@ -234,6 +245,9 @@ export function PlayClient({
             <p className={`font-body text-xs ${theme.text.secondary}`}>
               play the claw machine to reveal your gift
             </p>
+            <div className="absolute top-0 right-0">
+              <MusicToggle isMuted={isMuted} onToggle={toggle} theme={theme} />
+            </div>
           </div>
           <ClawGame
             gifts={gifts}
@@ -249,7 +263,7 @@ export function PlayClient({
           localHistory={previousResults?.map((r) => r.giftSnapshot) ?? []}
           theme={theme}
           canPlayAgain={true}
-          onPlayAgain={() => setGameStarted(true)}
+          onPlayAgain={handleStartGame}
         />
       ) : (
         <PersonalityCard
@@ -257,7 +271,7 @@ export function PlayClient({
           interests={friend.interests}
           hobbies={friend.hobbies}
           theme={theme}
-          onPlay={() => setGameStarted(true)}
+          onPlay={handleStartGame}
         />
       )}
     </div>
