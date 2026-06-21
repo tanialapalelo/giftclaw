@@ -70,6 +70,8 @@ export function RevealPanel({
   }, [isLucky]);
 
   return createPortal(
+    // z-[9999]: must clear in-machine prize box z-index (up to ~1700, see the
+    // zIndex formula in claw-game.tsx) — this modal always needs to render on top.
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-modal-backdrop-fade">
       <div
         role="dialog"
