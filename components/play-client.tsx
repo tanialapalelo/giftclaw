@@ -205,7 +205,7 @@ export function PlayClient({
 }) {
   const [botDismissed, setBotDismissed] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const { start, toggle, isMuted } = useThemeMusic(themeKey);
+  const { start, toggle, isMuted, playStinger } = useThemeMusic(themeKey);
 
   const handleStartGame = useCallback(() => {
     setGameStarted(true);
@@ -255,6 +255,7 @@ export function PlayClient({
             shareToken={shareToken}
             previousGrabCount={alreadyPlayedCount}
             previousResults={previousResults ?? undefined}
+            playStinger={playStinger}
           />
         </>
       ) : hasPicksSoFar ? (
