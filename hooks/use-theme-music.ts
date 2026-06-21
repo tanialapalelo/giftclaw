@@ -79,6 +79,36 @@ export function useThemeMusic(themeKey: ThemeKey) {
     });
   }, []);
 
+  const playStinger = useCallback(() => {
+    const ctx = ctxRef.current;
+    const master = masterGainRef.current;
+    if (!ctx || !master) return;
+
+    const mel = THEME_MELODIES[themeKeyRef.current];
+    const root = mel.notes.find((f) => f > 0) ?? 440;
+    // Major triad (root, major third, perfect fifth), one octave up so it
+    // cuts through whatever ambient melody is already playing.
+    const intervals = [1, 5 / 4, 3 / 2];
+    const startTime = ctx.currentTime + 0.02;
+    const noteDur = 0.12;
+
+    intervals.forEach((ratio, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g);
+      g.connect(master);
+      osc.type = mel.waveform;
+      osc.frequency.value = root * ratio * 2;
+      const t = startTime + i * noteDur * 0.85;
+      const end = t + noteDur;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.01);
+      g.gain.linearRampToValueAtTime(0, end);
+      osc.start(t);
+      osc.stop(end + 0.01);
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -86,5 +116,5 @@ export function useThemeMusic(themeKey: ThemeKey) {
     };
   }, []);
 
-  return { start, toggle, isMuted };
+  return { start, toggle, isMuted, playStinger };
 }
