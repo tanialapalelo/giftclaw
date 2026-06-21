@@ -38,12 +38,14 @@ export function ClawGame({
   shareToken,
   previousGrabCount = 0,
   previousResults,
+  playStinger,
 }: {
   gifts: GiftSuggestion[];
   theme: Theme;
   shareToken: string;
   previousGrabCount?: number;
   previousResults?: GameResultWithGift[];
+  playStinger?: () => void;
 }) {
   const sessionId = useRef(crypto.randomUUID());
   const [shuffleKey, setShuffleKey] = useState(0);
@@ -427,6 +429,7 @@ export function ClawGame({
           attemptNumber={revealAttempt}
           maxAttempts={MAX_ATTEMPTS}
           theme={theme}
+          playStinger={playStinger}
         />
       )}
 
