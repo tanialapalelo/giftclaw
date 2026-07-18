@@ -250,7 +250,7 @@ export function FriendForm({
             defaultValue={initialData?.budgetMin ?? ""}
             className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
           />
-          <span className="font-body text-gray-500">—</span>
+          <span className="font-body text-gray-500">-</span>
           <input
             name="budgetMax"
             type="number"
@@ -291,7 +291,7 @@ export function FriendForm({
           className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white outline-none focus:border-yellow-400 [color-scheme:dark]"
         />
         <p className="mt-1 font-body text-[10px] text-gray-500">
-          After this date the link will be locked — set it for when you plan to
+          After this date the link will be locked, set it for when you plan to
           buy the gift
         </p>
       </div>

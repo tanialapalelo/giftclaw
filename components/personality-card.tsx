@@ -81,7 +81,7 @@ export function PersonalityCard({
 
   return (
     <div className="animate-fade-in space-y-4 text-center">
-      {/* Avatar placeholder — pixel art style */}
+      {/* Avatar placeholder, pixel art style */}
       <div className="relative inline-block">
         <div
           className={`flex h-20 w-20 items-center justify-center rounded-full border-4 text-4xl mx-auto ${theme.machine.frame}`}

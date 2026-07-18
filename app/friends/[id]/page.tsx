@@ -83,7 +83,7 @@ export default async function FriendPage({
                   {friend.budgetMin
                     ? formatBudget(friend.budgetMin, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}{" "}
-                  —{" "}
+                  to{" "}
                   {friend.budgetMax
                     ? formatBudget(friend.budgetMax, (friend.currency ?? "IDR") as CurrencyCode)
                     : "Any"}
@@ -112,7 +112,7 @@ export default async function FriendPage({
                     isExpired ? "text-red-400" : theme.isDark ? "text-white/70" : "text-gray-700"
                   }`}
                 >
-                  {deadlineText} {isExpired && "— EXPIRED"}
+                  {deadlineText} {isExpired && "- EXPIRED"}
                 </p>
               </div>
             )}
@@ -146,7 +146,7 @@ export default async function FriendPage({
                 {
                   n: "3",
                   label: "Wait for " + friend.name + " to Play",
-                  desc: `They pick up to ${MAX_ATTEMPTS} vibes — results appear below`,
+                  desc: `They pick up to ${MAX_ATTEMPTS} vibes, results appear below`,
                   href: null,
                   done: false,
                 },
@@ -180,21 +180,21 @@ export default async function FriendPage({
 
         {/* ── ACTION BUTTONS ── */}
         <div className="space-y-3">
-          {/* Step 1 — always visible */}
+          {/* Step 1, always visible */}
           <Link href={`/friends/${id}/gifts`} className="block">
             <PixelButton className="w-full bg-white text-gray-900">
               🎁 {hasResults ? "SEE GIFT IDEAS" : "STEP 1 - PREVIEW GIFT IDEAS"}
             </PixelButton>
           </Link>
 
-          {/* Step 2 — copy link, prominent */}
+          {/* Step 2, copy link, prominent */}
           <div
             className={`rounded-lg border-2 p-4 space-y-2 ${theme.machine.frame}`}
           >
             <p className="font-pixel text-[8px] text-white uppercase tracking-widest">
               {hasResults
                 ? "🔗 SHARE LINK"
-                : "STEP 2 — SEND THIS TO " + friend.name.toUpperCase()}
+                : "STEP 2 - SEND THIS TO " + friend.name.toUpperCase()}
             </p>
             <p className="font-body text-xs text-white/70">
               {hasResults
@@ -234,7 +234,7 @@ export default async function FriendPage({
               className={`font-body text-xs text-center ${theme.text.secondary}`}
             >
               {friend.name} grabbed {totalPlays} gift
-              {totalPlays > 1 ? "s" : ""} — here&apos;s what to buy:
+              {totalPlays > 1 ? "s" : ""}, here&apos;s what to buy:
             </p>
 
             {gameResults.map((result) => {

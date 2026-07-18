@@ -17,7 +17,7 @@ export default defineConfig({
 
     globals: true,
 
-    // Path alias — same with tsconfig @/ → src/
+    // Path alias, same with tsconfig @/ → src/
     alias: {
       "@": path.resolve(__dirname, "."),
     },

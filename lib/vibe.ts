@@ -36,7 +36,7 @@ export function getVibeFromGift(gift: {
     "Music & Entertainment": ["joyful", "vibrant"],
   };
 
-  // Mystery vibe taglines — mood-based, never names the gift
+  // Mystery vibe taglines, mood-based, never names the gift
   const categoryVibes: Record<string, string> = {
     "Books & Stationery":
       "Something that opens a world you haven't explored yet...",
@@ -48,7 +48,7 @@ export function getVibeFromGift(gift: {
     "Fashion & Accessories":
       "Something that lets you show the world who you are...",
     "Experience & Activity":
-      "Something to be lived, not owned — an adventure awaits...",
+      "Something to be lived, not owned, an adventure awaits...",
     "Home & Living":
       "Something that makes your space feel a little more like you...",
     "Art & Craft": "Something for the hands and heart of a creator...",

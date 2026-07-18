@@ -25,7 +25,7 @@ export default async function EditFriendPage({
             EDIT PROFILE
           </h1>
           <p className="mt-2 font-body text-gray-400">
-            Update {friend.name}&apos;s details — gifts will regenerate
+            Update {friend.name}&apos;s details, gifts will regenerate
             automatically 🎁
           </p>
         </div>

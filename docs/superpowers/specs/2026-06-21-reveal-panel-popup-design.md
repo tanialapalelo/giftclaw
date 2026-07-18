@@ -1,4 +1,4 @@
-# Reveal Panel Popup — Design
+# Reveal Panel Popup: Design
 
 ## Problem
 
@@ -6,12 +6,12 @@
 
 ## Scope
 
-1. `app/friends/new/page.tsx` — add a `← HOME` link, reusing the existing pattern from `app/friends/[id]/page.tsx`.
-2. `RevealPanel` — convert from an inline card to a true modal popup with a staggered entrance animation and a synthesized sound stinger.
+1. `app/friends/new/page.tsx`, add a `← HOME` link, reusing the existing pattern from `app/friends/[id]/page.tsx`.
+2. `RevealPanel`, convert from an inline card to a true modal popup with a staggered entrance animation and a synthesized sound stinger.
 
 ## Part 1: Back button on `friends/new`
 
-Add the same `← HOME` link (`Link href="/"`, pixel-styled pill button) already used in `app/friends/[id]/page.tsx:321-329`, placed near the page header above the form. No new component needed — copy the existing markup pattern.
+Add the same `← HOME` link (`Link href="/"`, pixel-styled pill button) already used in `app/friends/[id]/page.tsx:321-329`, placed near the page header above the form. No new component needed, copy the existing markup pattern.
 
 ## Part 2: Reveal panel popup
 
@@ -27,17 +27,17 @@ PlayClient (owns useThemeMusic(themeKey) → { start, toggle, isMuted, playSting
     → RevealPanel (calls playStinger() once on mount, alongside the existing confetti effect)
 ```
 
-`playStinger` is added to `useThemeMusic` (`hooks/use-theme-music.ts`) rather than built as a second, independent audio system — it reuses the hook's existing `AudioContext`/`masterGain`, so it automatically respects the mute toggle. If the audio context hasn't been started (`!ctx || !master`), `playStinger` no-ops safely, matching the existing guard pattern in `scheduleLoop`.
+`playStinger` is added to `useThemeMusic` (`hooks/use-theme-music.ts`) rather than built as a second, independent audio system, it reuses the hook's existing `AudioContext`/`masterGain`, so it automatically respects the mute toggle. If the audio context hasn't been started (`!ctx || !master`), `playStinger` no-ops safely, matching the existing guard pattern in `scheduleLoop`.
 
 ### Backdrop & dismiss
 
-`fixed inset-0` backdrop, `bg-black/60 backdrop-blur-sm`, **no `onClick` handler** — clicking it does nothing. Only the panel's own two buttons (`TRY AGAIN` / `SEE MY VIBES`) advance the game state; there is no third "dismissed but undecided" state in `ClawGame`'s phase machine, so an outside-click dismiss has nowhere meaningful to go.
+`fixed inset-0` backdrop, `bg-black/60 backdrop-blur-sm`, **no `onClick` handler**, clicking it does nothing. Only the panel's own two buttons (`TRY AGAIN` / `SEE MY VIBES`) advance the game state; there is no third "dismissed but undecided" state in `ClawGame`'s phase machine, so an outside-click dismiss has nowhere meaningful to go.
 
 Minimal accessibility: `role="dialog"`, `aria-modal="true"` on the panel container.
 
 ### Animation sequence
 
-CSS keyframes + `animationDelay` per element — no JS timers. Replaces the single `animate-slot-reveal` slide-in:
+CSS keyframes + `animationDelay` per element, no JS timers. Replaces the single `animate-slot-reveal` slide-in:
 
 | Step | Delay | Effect |
 |---|---|---|
@@ -57,19 +57,19 @@ Confetti fires immediately on mount, unchanged. Total sequence ≈ 650ms, compar
 
 ## New CSS (globals.css)
 
-- `.animate-modal-backdrop-fade` — opacity fade-in.
-- `.animate-modal-pop` — scale overshoot entrance.
-- `.animate-fade-up` (parameterized via inline `animationDelay`) — used for clue text, mood tags, buttons.
+- `.animate-modal-backdrop-fade`, opacity fade-in.
+- `.animate-modal-pop`, scale overshoot entrance.
+- `.animate-fade-up` (parameterized via inline `animationDelay`), used for clue text, mood tags, buttons.
 
 ## Out of scope
 
 - No changes to `ClawGame`'s phase state machine itself.
-- No focus trap / focus return beyond the `role="dialog"` attribute (acceptable for this app's scope — no other modals exist yet to establish a shared pattern for).
+- No focus trap / focus return beyond the `role="dialog"` attribute (acceptable for this app's scope, no other modals exist yet to establish a shared pattern for).
 - No changes to confetti behavior.
 
 ## Testing
 
-Manual verification via dev server (`/run` or equivalent) — this is a presentational/animation change; no automated test meaningfully covers "does this look more interesting." Confirm:
+Manual verification via dev server (`/run` or equivalent), this is a presentational/animation change; no automated test meaningfully covers "does this look more interesting." Confirm:
 - Popup renders centered over a dimmed/blurred backdrop, machine behind it not interactable.
 - Backdrop click does nothing.
 - Stinger plays in sync with the music mute toggle (muted when music is muted).

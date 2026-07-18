@@ -16,7 +16,7 @@ function buildMessages(
 ): string[] {
   const msgs = [...MESSAGES_INTRO];
   if (previousResults && previousResults.length > 0) {
-    msgs.push("🔄 Each grab reveals a different gift — choose wisely!");
+    msgs.push("🔄 Each grab reveals a different gift, choose wisely!");
   } else {
     msgs.push(`🎁 Let's find an amazing gift for ${friendName}!`);
   }
@@ -62,7 +62,7 @@ export function MascotBot({
 
   const handleNext = () => {
     if (typing) {
-      // Skip typewriter — show full message instantly
+      // Skip typewriter, show full message instantly
       setDisplayed(messages[msgIndex]);
       setTyping(false);
       return;

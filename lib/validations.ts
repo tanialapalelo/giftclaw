@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Sanitize helper — trim whitespace + strip HTML tags, prevent XSS attack
+// Sanitize helper, trim whitespace + strip HTML tags, prevent XSS attack
 const sanitizedString = (max: number) =>
   z
     .string()
@@ -33,10 +33,10 @@ export const friendSchema = z
 
     validUntil: z.string().nullable().optional(),
 
-    // Honeypot — only bots will fill this field, zod validates that it's always an empty string
+    // Honeypot, only bots will fill this field, zod validates that it's always an empty string
     _honeypot: z.string().max(0, "Bot detected").default(""),
   })
-  // Cross-field validation — requires .superRefine at the object level
+  // Cross-field validation, requires .superRefine at the object level
   .superRefine((data, ctx) => {
     if (
       data.budgetMin != null && // != null covers both null AND undefined

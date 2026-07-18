@@ -3,7 +3,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { FriendForm } from "@/components/friend-form";
 
 export const metadata = {
-  title: "New Friend — GiftClaw",
+  title: "New Friend | GiftClaw",
 };
 
 export default function NewFriendPage() {
