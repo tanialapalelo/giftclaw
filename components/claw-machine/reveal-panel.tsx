@@ -78,14 +78,6 @@ export function RevealPanel({
         aria-modal="true"
         className="w-full max-w-sm animate-modal-pop"
       >
-        {/* Zigzag top edge, ticket/receipt feel (uses same bg as reveal panel) */}
-        <div
-          className={`h-3 w-full -mb-px ${theme.reveal.bg}`}
-          style={{
-            clipPath:
-              "polygon(0 0, 4% 100%, 8% 0, 12% 100%, 16% 0, 20% 100%, 24% 0, 28% 100%, 32% 0, 36% 100%, 40% 0, 44% 100%, 48% 0, 52% 100%, 56% 0, 60% 100%, 64% 0, 68% 100%, 72% 0, 76% 100%, 80% 0, 84% 100%, 88% 0, 92% 100%, 96% 0, 100% 100%, 100% 0)",
-          }}
-        />
         <div
           className={`p-6 text-center space-y-4 rounded-lg ${theme.reveal.bg}`}
         >
