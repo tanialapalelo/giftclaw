@@ -14,7 +14,7 @@ export function GrabHistory({
   onPlayAgain,
 }: {
   shareToken: string;
-  /** In-memory grabs from this session — shown instantly then replaced with DB data */
+  /** In-memory grabs from this session, shown instantly then replaced with DB data */
   localHistory: GiftSuggestion[];
   theme: Theme;
   canPlayAgain?: boolean;
@@ -95,7 +95,7 @@ export function GrabHistory({
         })}
       </div>
 
-      {/* Keep Playing button — show if there are remaining attempts */}
+      {/* Keep Playing button, show if there are remaining attempts */}
       {canPlayAgain && onPlayAgain && (
         <button
           onClick={onPlayAgain}
@@ -106,7 +106,7 @@ export function GrabHistory({
       )}
 
       <p className={`font-pixel text-[7px] ${theme.text.secondary}`}>
-        YOUR GIFT-GIVER WILL SEE WHAT TO BUY — STAY SURPRISED ✦
+        YOUR GIFT-GIVER WILL SEE WHAT TO BUY · STAY SURPRISED ✦
       </p>
     </div>
   );

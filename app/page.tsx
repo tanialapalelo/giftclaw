@@ -18,7 +18,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-950 bg-pixel-grid bg-pixel-stars overflow-hidden">
-      {/* Scanline overlay all page — CRT feel */}
+      {/* Scanline overlay all page, CRT feel */}
       <div className="pointer-events-none fixed inset-0 z-50 crt-overlay opacity-50" />
 
       <div className="relative mx-auto max-w-lg px-4 py-12">
@@ -101,7 +101,7 @@ export default async function HomePage() {
               </span>
             </h1>
             <p className="mt-1 font-pixel text-[8px] tracking-widest text-gray-500">
-              — ARCADE EDITION —
+              ★ ARCADE EDITION ★
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export default async function HomePage() {
             claw machine to reveal one
           </p>
 
-          {/* Social proof counter — anonymous, no one's data exposed */}
+          {/* Social proof counter, anonymous, no one's data exposed */}
           {totalCount > 0 && (
             <div className="inline-block rounded border border-yellow-400/20 bg-yellow-400/5 px-4 py-2">
               <span className="font-pixel text-[8px] text-yellow-400">
@@ -160,7 +160,7 @@ export default async function HomePage() {
                 step: "03",
                 icon: "🕹️",
                 title: "SHARE & PLAY",
-                desc: "Share the claw machine link — your friend plays to reveal",
+                desc: "Share the claw machine link, your friend plays to reveal",
               },
               {
                 step: "04",
@@ -173,12 +173,12 @@ export default async function HomePage() {
                 key={step}
                 className="flex items-center gap-4 rounded border border-white/5 bg-white/[0.03] px-4 py-3 transition-colors hover:bg-white/[0.06]"
               >
-                {/* Step number — pixel style */}
+                {/* Step number, pixel style */}
                 <span className="w-8 shrink-0 font-pixel text-[10px] text-yellow-400">
                   {step}
                 </span>
 
-                {/* Icon — swap dengan Kenney sprite nanti */}
+                {/* Icon, swap dengan Kenney sprite nanti */}
                 <span className="text-xl">{icon}</span>
 
                 {/* Text */}

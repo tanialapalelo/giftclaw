@@ -25,7 +25,7 @@ describe("getFriend", () => {
   it("returns null for invalid UUID", async () => {
     const result = await getFriend("not-a-uuid");
     expect(result).toBeNull();
-    // Prisma is not called at all — isValidUUID guard
+    // Prisma is not called at all, isValidUUID guard
     expect(prisma.friend.findUnique).not.toHaveBeenCalled();
   });
 

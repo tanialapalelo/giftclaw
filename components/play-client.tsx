@@ -118,7 +118,7 @@ function AlreadyPlayedView({
           YOU'VE ALREADY PICKED!
         </p>
         <p className={`mt-1 font-body text-xs ${theme.text.secondary}`}>
-          You grabbed {results.length} gift{results.length > 1 ? "s" : ""} —
+          You grabbed {results.length} gift{results.length > 1 ? "s" : ""},
           your gift-giver can see these picks.
         </p>
         {deadlineText && (

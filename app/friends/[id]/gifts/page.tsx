@@ -46,7 +46,7 @@ export default async function GiftsPage({
           )}
         </div>
 
-        {/* Error state — rate limit */}
+        {/* Error state, rate limit */}
         {"error" in result && (
           <div className="rounded border border-red-200 bg-red-50 p-4 text-center space-y-2">
             <p className="font-pixel text-[8px] text-red-600">
@@ -55,7 +55,7 @@ export default async function GiftsPage({
             <p className="font-body text-sm text-red-500">{result.error}</p>
             {"remaining" in result && (
               <p className="font-pixel text-[7px] text-red-400">
-                TOO MANY REQUESTS — PLEASE WAIT A MINUTE AND REFRESH
+                TOO MANY REQUESTS - PLEASE WAIT A MINUTE AND REFRESH
               </p>
             )}
           </div>

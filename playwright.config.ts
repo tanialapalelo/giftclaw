@@ -13,7 +13,7 @@ export default defineConfig({
   // if 1 test fails, fail the whole CI run, save time and resources
   forbidOnly: !!process.env.CI,
 
-  // retry once for network flakiness in CI — retry before declaring fail
+  // retry once for network flakiness in CI, retry before declaring fail
   retries: process.env.CI ? 1 : 0,
 
   // 1 local worker in local, 50% CPU in CI

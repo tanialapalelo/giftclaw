@@ -20,7 +20,7 @@ export function saveProfileToLocalStorage(profile: SavedProfile) {
     ].slice(0, 5);
     localStorage.setItem("giftclaw_profiles", JSON.stringify(updated));
   } catch {
-    // Silent fail — localStorage bisa disabled di private browsing
+    // Silent fail, localStorage bisa disabled di private browsing
   }
 }
 

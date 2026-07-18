@@ -21,11 +21,11 @@ const APP_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "GiftClaw — Find the Perfect Gift",
+    default: "GiftClaw: Find the Perfect Gift",
     template: "%s | GiftClaw",
   },
   description:
-    "Tell us about your friend, get 8 AI-personalized gift ideas, then share a retro claw machine link — they play to reveal their gift. No login required.",
+    "Tell us about your friend, get 8 AI-personalized gift ideas, then share a retro claw machine link. They play to reveal their gift. No login required.",
   keywords: [
     "gift finder",
     "AI gift ideas",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: "website",
     url: APP_URL,
     siteName: "GiftClaw",
-    title: "GiftClaw — Find the Perfect Gift",
+    title: "GiftClaw: Find the Perfect Gift",
     description:
       "AI gift suggestions wrapped in a retro arcade claw machine. Share the link, let them play.",
     images: [
@@ -48,13 +48,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "GiftClaw — AI-powered gift finder with a claw machine game",
+        alt: "GiftClaw: AI-powered gift finder with a claw machine game",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GiftClaw — Find the Perfect Gift",
+    title: "GiftClaw: Find the Perfect Gift",
     description:
       "AI gift suggestions wrapped in a retro arcade claw machine. Share the link, let them play.",
     images: ["/og-image.png"],

@@ -71,14 +71,14 @@ export function RevealPanel({
 
   return createPortal(
     // z-[9999]: must clear in-machine prize box z-index (up to ~1700, see the
-    // zIndex formula in claw-game.tsx) — this modal always needs to render on top.
+    // zIndex formula in claw-game.tsx), this modal always needs to render on top.
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-modal-backdrop-fade">
       <div
         role="dialog"
         aria-modal="true"
         className="w-full max-w-sm animate-modal-pop"
       >
-        {/* Zigzag top edge — ticket/receipt feel (uses same bg as reveal panel) */}
+        {/* Zigzag top edge, ticket/receipt feel (uses same bg as reveal panel) */}
         <div
           className={`h-3 w-full -mb-px ${theme.reveal.bg}`}
           style={{
@@ -110,7 +110,7 @@ export function RevealPanel({
             ATTEMPT {attemptNumber} / {maxAttempts}
           </p>
 
-          {/* Gift emoji with sparkle burst — same emoji as in the machine */}
+          {/* Gift emoji with sparkle burst, same emoji as in the machine */}
           <div className="relative inline-block w-24 h-24">
             <div className="absolute inset-0 flex items-center justify-center">
               {["★", "✦", "◆", "✦", "★"].map((s, i) => (

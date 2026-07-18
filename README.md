@@ -12,17 +12,17 @@ Tell us about your friend → AI suggests 8 personalized gifts → Share the cla
 
 ## ✨ Features
 
-- **AI Gift Suggestions** — Gemini 2.5 Flash generates 8 personalized gifts with unique per-gift emoji, based on interests, hobbies, budget, and dislikes
-- **Claw Machine Game** — Interactive arcade-style claw machine; move with ◀ ▶ buttons or arrow keys, press GRAB or Space to drop the claw
-- **Vibe Reveal System** — Each grab reveals a mood-based clue (not the gift name) — receiver picks up to 20 vibes across sessions
-- **Grab History** — All grabs are persisted per session; gift giver sees exactly what was grabbed and what to buy
-- **Edit Profile** — Gift giver can update the friend profile and set a link expiry date; editing clears cached AI results to regenerate fresh suggestions
-- **Privacy by Design** — Budget, notes, and gift names are never exposed to the receiver. Two separate UUIDs: private `/friends/[id]` and shareable `/play/[shareToken]`
-- **4 Themes** — Soft & Elegant 🌸, Bold & Cool ⚡, Cute & Playful 🧸, Classic Arcade 🎪
-- **Smart Caching** — AI results cached in DB; no redundant API calls for the same profile
-- **Rate Limiting** — Upstash Redis sliding window (5 requests/min per IP) prevents API abuse
-- **Observability** — Sentry error tracking + Vercel Analytics + Speed Insights
-- **Recent Profiles** — localStorage remembers your last 5 profiles, no login required
+- **AI Gift Suggestions**: Gemini 2.5 Flash generates 8 personalized gifts with unique per-gift emoji, based on interests, hobbies, budget, and dislikes
+- **Claw Machine Game**: Interactive arcade-style claw machine; move with ◀ ▶ buttons or arrow keys, press GRAB or Space to drop the claw
+- **Vibe Reveal System**: Each grab reveals a mood-based clue (not the gift name); receiver picks up to 20 vibes across sessions
+- **Grab History**: All grabs are persisted per session; gift giver sees exactly what was grabbed and what to buy
+- **Edit Profile**: Gift giver can update the friend profile and set a link expiry date; editing clears cached AI results to regenerate fresh suggestions
+- **Privacy by Design**: Budget, notes, and gift names are never exposed to the receiver. Two separate UUIDs: private `/friends/[id]` and shareable `/play/[shareToken]`
+- **4 Themes**: Soft & Elegant 🌸, Bold & Cool ⚡, Cute & Playful 🧸, Classic Arcade 🎪
+- **Smart Caching**: AI results cached in DB; no redundant API calls for the same profile
+- **Rate Limiting**: Upstash Redis sliding window (5 requests/min per IP) prevents API abuse
+- **Observability**: Sentry error tracking + Vercel Analytics + Speed Insights
+- **Recent Profiles**: localStorage remembers your last 5 profiles, no login required
 
 ---
 
@@ -72,20 +72,20 @@ cp .env.example .env
 ```
 
 ```env
-# Required — PostgreSQL (Supabase)
+# Required: PostgreSQL (Supabase)
 DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
 
-# Required — Google Gemini AI
+# Required: Google Gemini AI
 GEMINI_API_KEY="AIza..."
 
-# Required — Upstash Redis (rate limiting)
+# Required: Upstash Redis (rate limiting)
 UPSTASH_REDIS_REST_URL="https://xxxx.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="xxxx"
 
-# Required — Sentry (error monitoring)
+# Required: Sentry (error monitoring)
 SENTRY_AUTH_TOKEN="sntrys_..."
 
-# Optional — used for SEO/OG metadata (defaults to giftclaw.vercel.app)
+# Optional: used for SEO/OG metadata (defaults to giftclaw.vercel.app)
 NEXT_PUBLIC_APP_URL="https://your-domain.com"
 ```
 
@@ -111,7 +111,7 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 ```
 giftclaw/
 ├── app/
-│   ├── layout.tsx                  # Root layout — fonts, SEO metadata, analytics
+│   ├── layout.tsx                  # Root layout: fonts, SEO metadata, analytics
 │   ├── page.tsx                    # Landing page + recent profiles
 │   ├── not-found.tsx               # Global 404
 │   ├── global-error.tsx            # Global Sentry error boundary
@@ -124,7 +124,7 @@ giftclaw/
 │   │       └── gifts/page.tsx      # AI gift suggestions preview (gift giver only)
 │   └── play/
 │       └── [shareToken]/
-│           └── page.tsx            # Claw machine — receiver link, no sensitive data
+│           └── page.tsx            # Claw machine: receiver link, no sensitive data
 ├── components/
 │   ├── claw-machine/
 │   │   ├── claw-game.tsx           # Main game orchestrator (client)
@@ -197,20 +197,20 @@ giftclaw/
 6. AI generation (lazy, on first visit):
    → Rate limit check (5 req/min/IP via Upstash sliding window)
    → Gemini 2.5 Flash generates 8 gifts with unique emoji per gift
-   → Result cached in DB — subsequent visits served from cache
+   → Result cached in DB, subsequent visits served from cache
 ```
 
 ---
 
 ## 🔒 Privacy & Security
 
-- **Two-UUID model** — `id` (private, gift giver only) and `shareToken` (receiver link). Receiver cannot reverse-engineer the private URL.
-- **Field-level select** — `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `validUntil` — budget and notes never leave the server for receiver requests.
-- **Rate limiting** — 5 AI requests per IP per minute via Upstash Redis sliding window; prevents both accidental and malicious Gemini API abuse.
-- **Input sanitization** — Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
-- **Honeypot field** — Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.
-- **UUID guard** — All `[id]` and `[shareToken]` routes validate format before hitting the DB.
-- **Link expiry** — Gift giver can set a `validUntil` date; expired links show a locked screen.
+- **Two-UUID model**: `id` (private, gift giver only) and `shareToken` (receiver link). Receiver cannot reverse-engineer the private URL.
+- **Field-level select**: `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `validUntil`; budget and notes never leave the server for receiver requests.
+- **Rate limiting**: 5 AI requests per IP per minute via Upstash Redis sliding window; prevents both accidental and malicious Gemini API abuse.
+- **Input sanitization**: Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
+- **Honeypot field**: Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.
+- **UUID guard**: All `[id]` and `[shareToken]` routes validate format before hitting the DB.
+- **Link expiry**: Gift giver can set a `validUntil` date; expired links show a locked screen.
 
 ---
 
@@ -223,7 +223,7 @@ pnpm test
 # Unit tests with coverage
 pnpm test:coverage
 
-# E2E tests (Playwright) — requires dev server running
+# E2E tests (Playwright): requires dev server running
 pnpm test:e2e
 
 # E2E with UI
@@ -274,7 +274,7 @@ git push origin feat/your-feature
 
 ## 📝 License
 
-MIT — feel free to fork and build your own version!
+MIT: feel free to fork and build your own version!
 
 ---
 

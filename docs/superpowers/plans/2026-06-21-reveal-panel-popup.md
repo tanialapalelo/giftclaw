@@ -11,10 +11,10 @@
 ## Global Constraints
 
 - No changes to `ClawGame`'s `GamePhase` state machine.
-- Backdrop click does nothing — no dismiss handler, per the approved spec.
-- No focus trap beyond `role="dialog"` / `aria-modal="true"` — out of scope per spec.
+- Backdrop click does nothing, no dismiss handler, per the approved spec.
+- No focus trap beyond `role="dialog"` / `aria-modal="true"`, out of scope per spec.
 - `playStinger` must no-op safely if the audio context hasn't started (`!ctx || !master`), matching the existing guard pattern in `scheduleLoop`.
-- This is presentational/animation work — verification is manual via the dev server (`pnpm dev`), plus `npx tsc --noEmit` and `npx eslint .` as the automated checks available, per the approved spec's own Testing section.
+- This is presentational/animation work, verification is manual via the dev server (`pnpm dev`), plus `npx tsc --noEmit` and `npx eslint .` as the automated checks available, per the approved spec's own Testing section.
 
 ---
 
@@ -23,7 +23,7 @@
 **Files:**
 - Modify: `app/friends/new/page.tsx`
 
-**Interfaces:** None — this task is self-contained, no shared types/functions with other tasks.
+**Interfaces:** None, this task is self-contained, no shared types/functions with other tasks.
 
 - [ ] **Step 1: Add the back link**
 
@@ -33,7 +33,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { FriendForm } from "@/components/friend-form";
 
 export const metadata = {
-  title: "New Friend — GiftClaw",
+  title: "New Friend | GiftClaw",
 };
 
 export default function NewFriendPage() {
@@ -67,7 +67,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { FriendForm } from "@/components/friend-form";
 
 export const metadata = {
-  title: "New Friend — GiftClaw",
+  title: "New Friend | GiftClaw",
 };
 
 export default function NewFriendPage() {
@@ -131,7 +131,7 @@ git commit -m "feat: add back-to-home link on friends/new page"
 - Modify: `hooks/use-theme-music.ts`
 
 **Interfaces:**
-- Consumes: existing hook internals — `ctxRef: React.RefObject<AudioContext | null>`, `masterGainRef: React.RefObject<GainNode | null>`, `themeKeyRef: React.RefObject<ThemeKey>`, `THEME_MELODIES: Record<ThemeKey, MelodyConfig>` (from `@/lib/theme-melodies`, where `MelodyConfig = { notes: number[]; bpm: number; waveform: OscillatorType; gain: number }`).
+- Consumes: existing hook internals, `ctxRef: React.RefObject<AudioContext | null>`, `masterGainRef: React.RefObject<GainNode | null>`, `themeKeyRef: React.RefObject<ThemeKey>`, `THEME_MELODIES: Record<ThemeKey, MelodyConfig>` (from `@/lib/theme-melodies`, where `MelodyConfig = { notes: number[]; bpm: number; waveform: OscillatorType; gain: number }`).
 - Produces: `playStinger: () => void`, added to the hook's return object. Task 3 consumes this exact name and signature.
 
 - [ ] **Step 1: Add the `playStinger` function**
@@ -191,7 +191,7 @@ git add hooks/use-theme-music.ts
 git commit -m "feat: add playStinger to useThemeMusic for reveal sound effect"
 ```
 
-(Full behavioral verification — confirming the stinger actually plays and respects mute — happens in Task 5, once `RevealPanel` calls it.)
+(Full behavioral verification, confirming the stinger actually plays and respects mute, happens in Task 5, once `RevealPanel` calls it.)
 
 ---
 
@@ -273,7 +273,7 @@ export function ClawGame({
   playStinger?: () => void;
 ```
 
-(Leave the rest of the destructured type object — the closing `}` and remaining lines — unchanged.)
+(Leave the rest of the destructured type object, the closing `}` and remaining lines, unchanged.)
 
 Then update the `<RevealPanel ... />` call (lines 422-430) from:
 ```tsx
@@ -304,7 +304,7 @@ to:
 - [ ] **Step 3: Type-check and lint**
 
 Run: `npx tsc --noEmit && npx eslint components/play-client.tsx components/claw-machine/claw-game.tsx`
-Expected: errors about `RevealPanel` not accepting a `playStinger` prop yet — this is expected until Task 5. Confirm there are no *other* errors (e.g. typos in the prop threading itself) by reading the error output carefully.
+Expected: errors about `RevealPanel` not accepting a `playStinger` prop yet, this is expected until Task 5. Confirm there are no *other* errors (e.g. typos in the prop threading itself) by reading the error output carefully.
 
 - [ ] **Step 4: Commit**
 
@@ -321,7 +321,7 @@ git commit -m "feat: thread playStinger prop from PlayClient through ClawGame"
 - Modify: `app/globals.css`
 
 **Interfaces:**
-- Produces: CSS classes `.animate-modal-backdrop-fade`, `.animate-modal-pop`, `.animate-fade-up` — Task 5 applies these exact class names.
+- Produces: CSS classes `.animate-modal-backdrop-fade`, `.animate-modal-pop`, `.animate-fade-up`, Task 5 applies these exact class names.
 
 - [ ] **Step 1: Add the new keyframes and utility classes**
 
@@ -373,9 +373,9 @@ In `app/globals.css`, immediately after the existing `.animate-slot-reveal` bloc
 }
 ```
 
-Note `.animate-fade-up` uses the `both` fill-mode (in the animation shorthand) deliberately — elements using this class will be given an `animationDelay` via inline `style` in Task 5, and `both` makes the element hold its `from` state (`opacity: 0`) for the entire delay period instead of flashing visible before the delay elapses, then holds the `to` state after finishing.
+Note `.animate-fade-up` uses the `both` fill-mode (in the animation shorthand) deliberately, elements using this class will be given an `animationDelay` via inline `style` in Task 5, and `both` makes the element hold its `from` state (`opacity: 0`) for the entire delay period instead of flashing visible before the delay elapses, then holds the `to` state after finishing.
 
-- [ ] **Step 2: Lint the CSS file (no dedicated CSS linter configured — verify by running the app)**
+- [ ] **Step 2: Lint the CSS file (no dedicated CSS linter configured, verify by running the app)**
 
 Run: `pnpm dev`
 Expected: dev server starts with no Tailwind/PostCSS build errors.
@@ -481,7 +481,7 @@ export function RevealPanel({
         aria-modal="true"
         className="w-full max-w-sm animate-modal-pop"
       >
-        {/* Zigzag top edge — ticket/receipt feel (uses same bg as reveal panel) */}
+        {/* Zigzag top edge, ticket/receipt feel (uses same bg as reveal panel) */}
         <div
           className={`h-3 w-full -mb-px ${theme.reveal.bg}`}
           style={{
@@ -513,7 +513,7 @@ export function RevealPanel({
             ATTEMPT {attemptNumber} / {maxAttempts}
           </p>
 
-          {/* Gift emoji with sparkle burst — same emoji as in the machine */}
+          {/* Gift emoji with sparkle burst, same emoji as in the machine */}
           <div className="relative inline-block w-24 h-24">
             <div className="absolute inset-0 flex items-center justify-center">
               {["★", "✦", "◆", "✦", "★"].map((s, i) => (
@@ -614,12 +614,12 @@ Run: `pnpm dev`, open a `/play/[shareToken]` link for an existing friend (or cre
 Expected:
 - The background (claw machine) dims and blurs behind a centered popup.
 - The popup pops in with a slight overshoot, not a flat slide.
-- Inside the popup: emoji/sparkles appear shortly after the panel, then the clue text, then mood tags, then buttons — visibly staggered, not all at once.
+- Inside the popup: emoji/sparkles appear shortly after the panel, then the clue text, then mood tags, then buttons, visibly staggered, not all at once.
 - A short ascending 3-note chime plays right as the popup appears.
-- Clicking the dimmed backdrop does nothing — the popup stays open.
-- Toggling the music mute button (top-right during gameplay) and then grabbing again — confirm the stinger is silent while muted.
-- Click "TRY AGAIN" (if attempts remain) — confirm it still correctly resets the claw game state as before.
-- Click "SEE MY VIBES" / "SEE ALL VIBES" — confirm it still correctly opens `GrabHistory` as before.
+- Clicking the dimmed backdrop does nothing, the popup stays open.
+- Toggling the music mute button (top-right during gameplay) and then grabbing again, confirm the stinger is silent while muted.
+- Click "TRY AGAIN" (if attempts remain), confirm it still correctly resets the claw game state as before.
+- Click "SEE MY VIBES" / "SEE ALL VIBES", confirm it still correctly opens `GrabHistory` as before.
 
 - [ ] **Step 4: Commit**
 
@@ -633,5 +633,5 @@ git commit -m "feat: convert reveal panel to a portal-based popup with staggered
 ## Self-Review Notes
 
 - **Spec coverage:** Part 1 (back button) → Task 1. Part 2's rendering approach (portal) → Task 5. Backdrop/dismiss → Task 5 (no onClick handler at all, confirmed in the JSX). Animation sequence table → Task 5's per-element `animationDelay` values match the spec's table exactly (0/0/150/200/350/450/550ms). Sound stinger → Tasks 2, 3, 5. New CSS → Task 4. Accessibility (`role="dialog"`, `aria-modal`) → Task 5.
-- **Type consistency:** `playStinger?: () => void` is the exact signature used consistently across `hooks/use-theme-music.ts` (Task 2's return value), `components/play-client.tsx` (Task 3's destructure/pass-through), `components/claw-machine/claw-game.tsx` (Task 3's prop type), and `components/claw-machine/reveal-panel.tsx` (Task 5's prop type) — all optional, all `() => void`, no mismatches.
+- **Type consistency:** `playStinger?: () => void` is the exact signature used consistently across `hooks/use-theme-music.ts` (Task 2's return value), `components/play-client.tsx` (Task 3's destructure/pass-through), `components/claw-machine/claw-game.tsx` (Task 3's prop type), and `components/claw-machine/reveal-panel.tsx` (Task 5's prop type), all optional, all `() => void`, no mismatches.
 - **No placeholders:** every step has complete, copy-pasteable code; no "TBD"/"similar to Task N" shortcuts.

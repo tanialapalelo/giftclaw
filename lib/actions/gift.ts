@@ -12,7 +12,7 @@ import type { GiftSuggestion } from "@/types";
 export async function getGiftSuggestions(friendId: string) {
   if (!isValidUUID(friendId)) return { error: "Invalid ID" };
 
-  // Return cached result if one exists — avoids redundant Gemini calls
+  // Return cached result if one exists, avoids redundant Gemini calls
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },
     orderBy: { createdAt: "desc" },
@@ -51,7 +51,7 @@ export async function getGiftSuggestions(friendId: string) {
       };
     }
   } catch (redisError) {
-    // Redis unavailable (e.g. Upstash free-tier inactivity pause) — fail open
+    // Redis unavailable (e.g. Upstash free-tier inactivity pause), fail open
     // so the app keeps working; Sentry logs it for visibility.
     Sentry.captureException(redisError, {
       tags: { action: "getGiftSuggestions", step: "rate-limit" },
@@ -82,7 +82,7 @@ export async function getGiftSuggestions(friendId: string) {
     createdAt: friend.createdAt.toISOString(),
   };
 
-  // Call Gemini — wrapped in try/catch so API errors degrade gracefully
+  // Call Gemini, wrapped in try/catch so API errors degrade gracefully
   try {
     const start = Date.now();
     const result = await analyzeGifts(friendProfile);

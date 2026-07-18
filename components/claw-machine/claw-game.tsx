@@ -66,7 +66,7 @@ export function ClawGame({
   const totalAttemptsSoFar = previousGrabCount + grabHistory.length;
   const remainingAttempts = MAX_ATTEMPTS - totalAttemptsSoFar;
 
-  // Stable gift order — shuffled once on mount, never changes.
+  // Stable gift order, shuffled once on mount, never changes.
   // Colors (col index) are derived from this order so they stay consistent
   // across grabs, shuffles, and reveals.
   const stableOrderRef = useRef<GiftSuggestion[]>([]);
@@ -238,7 +238,7 @@ export function ClawGame({
     if (phase === "dropping" && currentGift && !autoSavedRef.current) {
       autoSavedRef.current = true;
       const grabIndex = previousGrabCount + grabHistory.length + 1;
-      // Allow the same gift name multiple times — grabHistory.length drives the attempt counter
+      // Allow the same gift name multiple times, grabHistory.length drives the attempt counter
       setGrabHistory((prev) => [...prev, currentGift]);
       void saveGameResult({
         shareToken,
@@ -253,7 +253,7 @@ export function ClawGame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, currentGift]);
 
-  // Shared helper — increment grab count for the most recently grabbed gift
+  // Shared helper, increment grab count for the most recently grabbed gift
   const incrementGrabCount = () => {
     const grabbed = currentGiftRef.current;
     if (grabbed) {
@@ -290,7 +290,7 @@ export function ClawGame({
   };
 
   // Called from GrabHistory "KEEP PLAYING"
-  // If opened mid-game (no grab happened), just close — no reshuffle needed
+  // If opened mid-game (no grab happened), just close, no reshuffle needed
   const handleKeepPlaying = () => {
     if (!midGameHistory) doReset();
     setMidGameHistory(false);
@@ -419,7 +419,7 @@ export function ClawGame({
         />
       </MachineFrame>
 
-      {/* Reveal Panel — shown after chute-drop animation finishes */}
+      {/* Reveal Panel, shown after chute-drop animation finishes */}
       {phase === "result" && revealReady && currentGift && (
         <RevealPanel
           gift={currentGift}
