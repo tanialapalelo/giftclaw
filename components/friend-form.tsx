@@ -58,7 +58,7 @@ function TagInput({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? placeholder : ""}
-          className="min-w-[120px] flex-1 bg-transparent font-body text-sm text-white placeholder:text-gray-500 outline-none"
+          className="min-w-[120px] flex-1 bg-transparent font-body text-base text-white placeholder:text-gray-500 outline-none"
         />
       </div>
       <p className="mt-1 font-body text-[10px] text-gray-500">
@@ -170,7 +170,7 @@ export function FriendForm({
           type="text"
           placeholder="e.g. Sarah"
           defaultValue={initialData?.name ?? ""}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
         />
         {errors.name && (
           <p className="mt-1 font-body text-xs text-red-500">
@@ -248,7 +248,7 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMin ?? ""}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
           />
           <span className="font-body text-gray-500">-</span>
           <input
@@ -258,7 +258,7 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMax ?? ""}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
           />
         </div>
       </div>
@@ -272,7 +272,7 @@ export function FriendForm({
           rows={3}
           placeholder="e.g. She just got promoted, loves vintage aesthetic..."
           defaultValue={initialData?.notes ?? ""}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
         />
       </div>
 
@@ -288,7 +288,7 @@ export function FriendForm({
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}
           min={new Date().toISOString().split("T")[0]}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-sm text-white outline-none focus:border-yellow-400 [color-scheme:dark]"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white outline-none focus:border-yellow-400 [color-scheme:dark]"
         />
         <p className="mt-1 font-body text-[10px] text-gray-500">
           After this date the link will be locked, set it for when you plan to
