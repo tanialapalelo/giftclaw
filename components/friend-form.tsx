@@ -288,7 +288,7 @@ export function FriendForm({
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}
           min={new Date().toISOString().split("T")[0]}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white outline-none focus:border-yellow-400 [color-scheme:dark]"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white outline-none focus:border-yellow-400"
         />
         <p className="mt-1 font-body text-[10px] text-gray-500">
           After this date the link will be locked, set it for when you plan to
