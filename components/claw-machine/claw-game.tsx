@@ -86,95 +86,136 @@ export function ClawGame({
   const { phase, clawX, clawY, targetX, grabbedPrize } = state;
 
   const nGifts = stableGifts.length;
-  const PILE_H = 170;
+  // Must track the machine interior's actual pixel size (h-80 in
+  // machine-frame.tsx) and the prize container's top/bottom insets below
+  // (top: `${PILE_TOP_PCT}%`, bottom: `${PILE_BOTTOM_PCT}%`) — otherwise
+  // the pile's usable height drifts out of sync and leaves a gap above
+  // the floor.
+  const INTERIOR_H = 320;
+  const PILE_TOP_PCT = 18;
+  const PILE_BOTTOM_PCT = 6;
+  const PILE_H = Math.round(
+    (INTERIOR_H * (100 - PILE_TOP_PCT - PILE_BOTTOM_PCT)) / 100
+  );
+
+  const boxPx = Math.max(
+    44,
+    Math.min(60, Math.floor(260 / Math.max(nGifts, 1)))
+  );
 
   const displayItems = useMemo(() => {
-    const total = nGifts * COPIES;
-    // Choose columns so cells are roughly square-ish
-    const cols = Math.max(4, Math.ceil(Math.sqrt(total * 1.4)));
-    const rows = Math.ceil(total / cols);
-    const cellW = 86 / cols; // % of container width
-    const cellH = PILE_H / Math.max(rows, 1);
+    // Use stableGifts so col index (= color) never changes between grabs.
+    // Flatten to the copies still actually in the pool — grabbed copies are
+    // dropped from this list entirely so piles stay dense as gifts run out,
+    // instead of leaving permanent holes where a grabbed item used to sit.
+    const remaining = stableGifts.flatMap((gift, col) => {
+      const remainingCopies = COPIES - (grabCounts.get(gift.name) ?? 0);
+      return Array.from({ length: remainingCopies }, (_, copy) => ({
+        gift,
+        col,
+        copy,
+      }));
+    });
+    const n = remaining.length;
+    if (n === 0) return [];
 
-    // Deterministic shuffle of cell indices keyed to shuffleKey
+    // Scattered mosaic: a loose grid spanning the whole floor, cells sized
+    // and jittered so neighbors overlap at their edges — like prizes tossed
+    // into a real claw machine. Most of every box stays visible; nothing
+    // sits in a tall column that fully hides what's behind it.
+    const rows = Math.max(2, Math.min(4, Math.round(Math.sqrt(n / 1.5))));
+    const cols = Math.ceil(n / rows);
+    // Boxes render downward from their yPx anchor (bow + box body), so the
+    // usable vertical range has to leave room for that height — otherwise
+    // the bottom row draws past the container and over the machine floor.
+    const itemH = boxPx * 1.3;
+    const usableH = Math.max(PILE_H - itemH, itemH);
+    // Horizontal margin keeps a box's own half-width from crossing the
+    // chute rail on the left or the cabinet wall on the right.
+    const MARGIN = 6; // % of container width
+    const span = 100 - MARGIN * 2;
+    const cellW = span / cols; // % of container width
+    const cellH = usableH / rows; // px
+
+    // Deterministic shuffle of cell indices keyed to shuffleKey. Only the
+    // first n (one per remaining copy) are used, so the pack always stays
+    // fully dense as gifts get grabbed.
     const cells = Array.from({ length: cols * rows }, (_, i) => i);
     for (let i = cells.length - 1; i > 0; i--) {
       const j = Math.floor(hash(i, shuffleKey, 99) * (i + 1));
       [cells[i], cells[j]] = [cells[j], cells[i]];
     }
 
-    // Use stableGifts so col index (= color) never changes between grabs
-    const items = stableGifts.flatMap((gift, col) => {
-      const remainingCopies = COPIES - (grabCounts.get(gift.name) ?? 0);
-      return Array.from({ length: remainingCopies }, (_, copy) => {
-        const slotIdx = col * COPIES + copy;
-        const slot = cells[slotIdx % cells.length]!;
-        const cellCol = slot % cols;
-        const cellRow = Math.floor(slot / cols);
+    const items = remaining.map(({ gift, col, copy }, i) => {
+      const cell = cells[i]!;
+      const cellCol = cell % cols;
+      const cellRow = Math.floor(cell / cols);
 
-        // Small jitter: ±15% of cell size so boxes stay in their cell
-        const xPct =
-          7 +
-          cellCol * cellW +
-          cellW * 0.5 +
-          (hash(col, copy, shuffleKey + 1) - 0.5) * cellW * 0.3;
-        const yPx =
-          cellRow * cellH +
-          cellH * 0.5 +
-          (hash(col + 5, copy + 3, shuffleKey + 2) - 0.5) * cellH * 0.35;
-        const rot = (hash(col + 11, copy + 7, shuffleKey + 3) - 0.5) * 28; // ±14deg
+      // Jitter lets neighboring cells overlap at the edges without one
+      // box fully hiding another
+      const xPct =
+        MARGIN +
+        cellCol * cellW +
+        cellW * 0.5 +
+        (hash(col, copy, shuffleKey + 1) - 0.5) * cellW * 0.3;
+      const yPx =
+        cellRow * cellH +
+        cellH * 0.5 +
+        (hash(col + 5, copy + 3, shuffleKey + 2) - 0.5) * cellH * 0.3;
+      const rot = (hash(col + 11, copy + 7, shuffleKey + 3) - 0.5) * 36; // ±18deg
 
-        return {
-          gift,
-          col,
-          copy,
-          key: `${col}-${copy}`,
-          xPct,
-          yPx,
-          rot,
-          // Items at top of pile (low yPx = near the claw) get higher z-index
-          // so they render in front visually AND the grab logic picks them first
-          zIndex: Math.round((PILE_H - yPx) * 10) + col,
-        };
-      });
+      return {
+        gift,
+        col,
+        copy,
+        key: `${col}-${copy}`,
+        xPct,
+        yPx,
+        rot,
+        // Items closer to the claw (low yPx) get higher z-index so they
+        // render in front AND the grab logic picks them first
+        zIndex: Math.round((PILE_H - yPx) * 10) + col,
+      };
     });
     return items.sort((a, b) => a.zIndex - b.zIndex);
-  }, [stableGifts, shuffleKey, nGifts, grabCounts]);
-
-  const boxPx = Math.max(
-    36,
-    Math.min(48, Math.floor(190 / Math.max(nGifts, 1)))
-  );
+  }, [stableGifts, shuffleKey, nGifts, grabCounts, boxPx]);
 
   const handleGrab = useCallback(() => {
     if (phase !== "moving") return;
     const clawInZone = ((clawX - CHUTE_OFFSET) / (100 - CHUTE_OFFSET)) * 100;
-    let nearestShuffledIdx = 0;
-    let nearestDist = Infinity;
-    let nearestKey: string | null = null;
-    let nearestXPct = 50;
 
-    // Match by gift.name so indices stay correct after some gifts are fully grabbed.
-    // displayItems use stableGifts col indices; shuffledGifts is a filtered subset,
-    // so iterating shuffledGifts and finding display items by name avoids the mismatch.
-    for (let i = 0; i < shuffledGifts.length; i++) {
-      const gift = shuffledGifts[i];
-      const copies = displayItems.filter(
-        (item) => item.gift.name === gift.name && item.key !== lockedGrabKey
-      );
-      if (!copies.length) continue;
-      const topCopy = copies.reduce((a, b) => (a.yPx < b.yPx ? a : b));
-      const dist = Math.abs(topCopy.xPct - clawInZone);
-      if (dist < nearestDist) {
-        nearestDist = dist;
-        nearestShuffledIdx = i;
-        nearestKey = topCopy.key;
-        nearestXPct = topCopy.xPct;
-      }
-    }
-    if (nearestKey) setLockedGrabKey(nearestKey);
+    // Pick the actual box the claw lands on: among boxes within reach,
+    // the frontmost one (highest z-index) wins, same as it would visually
+    // block the claw from reaching whatever sits behind it. Only falls
+    // back to plain nearest-by-x if nothing is within reach.
+    const HIT_RADIUS = 8; // % of the prize zone's width
+    const candidates = displayItems.filter(
+      (item) => item.key !== lockedGrabKey
+    );
+    const inReach = candidates.filter(
+      (item) => Math.abs(item.xPct - clawInZone) <= HIT_RADIUS
+    );
+    const pool = inReach.length > 0 ? inReach : candidates;
+    const best = pool.reduce<(typeof candidates)[number] | null>(
+      (a, b) => {
+        if (!a) return b;
+        if (inReach.length > 0) return b.zIndex > a.zIndex ? b : a;
+        const da = Math.abs(a.xPct - clawInZone);
+        const db = Math.abs(b.xPct - clawInZone);
+        return db < da ? b : a;
+      },
+      null
+    );
+    if (!best) return;
+
+    const nearestShuffledIdx = shuffledGifts.findIndex(
+      (gift) => gift.name === best.gift.name
+    );
+    if (nearestShuffledIdx === -1) return;
+
+    setLockedGrabKey(best.key);
     const exactContainerX =
-      CHUTE_OFFSET + (nearestXPct / 100) * (100 - CHUTE_OFFSET);
+      CHUTE_OFFSET + (best.xPct / 100) * (100 - CHUTE_OFFSET);
     grab(nearestShuffledIdx, exactContainerX);
   }, [phase, clawX, shuffledGifts, displayItems, lockedGrabKey, grab]);
 
@@ -366,7 +407,11 @@ export function ClawGame({
         {/* Prize pile */}
         <div
           className="absolute right-0 overflow-visible"
-          style={{ left: `${CHUTE_OFFSET}%`, top: "28%", bottom: "6%" }}
+          style={{
+            left: `${CHUTE_OFFSET}%`,
+            top: `${PILE_TOP_PCT}%`,
+            bottom: `${PILE_BOTTOM_PCT}%`,
+          }}
         >
           {displayItems.map((item) => (
             <div
