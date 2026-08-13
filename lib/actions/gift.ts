@@ -7,6 +7,7 @@ import { rateLimiter } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
+import { MAX_ATTEMPTS } from "@/lib/constants";
 import type { GiftSuggestion } from "@/types";
 
 export async function getGiftSuggestions(friendId: string) {
@@ -140,15 +141,30 @@ export async function saveGameResult({
     });
     if (!friend) return { error: "Friend not found" };
 
-    await prisma.gameResult.create({
-      data: {
-        friendId: friend.id,
-        sessionId,
-        grabIndex,
-        giftSnapshot,
-      },
+    return await prisma.$transaction(async (tx) => {
+      // Row-lock the friend so a second, near-simultaneous grab (two tabs,
+      // or a direct call replaying the same request) waits for this
+      // transaction to commit before it re-counts, instead of both
+      // transactions reading the same stale count and both passing.
+      await tx.$queryRaw`SELECT id FROM friends WHERE id = ${friend.id}::uuid FOR UPDATE`;
+
+      const attemptCount = await tx.gameResult.count({
+        where: { friendId: friend.id },
+      });
+      if (attemptCount >= MAX_ATTEMPTS) {
+        return { error: "Attempt limit reached" };
+      }
+
+      await tx.gameResult.create({
+        data: {
+          friendId: friend.id,
+          sessionId,
+          grabIndex,
+          giftSnapshot,
+        },
+      });
+      return { success: true };
     });
-    return { success: true };
   } catch {
     return { error: "Failed to save result" };
   }

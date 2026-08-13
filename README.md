@@ -187,7 +187,7 @@ giftclaw/
    → Moves claw with ◀ ▶ or arrow keys, grabs with GRAB or Space
    → Claw drops to the visual box position → lifts → drops through chute
    → Reveal panel shows a mood-based vibe clue (not the gift name)
-   → Up to 20 grab attempts across sessions; grabbed gifts become less likely
+   → Up to 3 grab attempts across sessions; grabbed gifts become less likely
      to be grabbed again (remaining copies shown, fully-grabbed gifts removed)
 
 5. Gift giver sees results on /friends/[id]
