@@ -17,6 +17,12 @@ export type GameResultsResponse = {
   totalCount: number;
 } | null;
 
+export async function getGameResultCountForFriend(
+  friendId: string
+): Promise<number> {
+  return prisma.gameResult.count({ where: { friendId } });
+}
+
 export async function getGameResultsForFriend(
   shareToken: string
 ): Promise<GameResultsResponse> {
