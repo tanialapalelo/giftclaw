@@ -16,12 +16,14 @@ function TagInput({
   tags,
   onAdd,
   onRemove,
+  disabled,
 }: {
   label: string;
   placeholder: string;
   tags: string[];
   onAdd: (tag: string) => void;
   onRemove: (index: number) => void;
+  disabled?: boolean;
 }) {
   const [input, setInput] = useState("");
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -36,33 +38,41 @@ function TagInput({
       <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
         {label}
       </label>
-      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-700 bg-gray-800 p-2 focus-within:border-yellow-400">
+      <div
+        className={`flex flex-wrap gap-2 rounded-lg border border-gray-700 bg-gray-800 p-2 focus-within:border-yellow-400 ${
+          disabled ? "opacity-50" : ""
+        }`}
+      >
         {tags.map((tag, i) => (
           <span
             key={i}
             className="flex items-center gap-1 rounded bg-gray-700 px-2 py-1 font-body text-xs text-white"
           >
             {tag}
-            <button
-              type="button"
-              onClick={() => onRemove(i)}
-              className="ml-1 text-gray-400 hover:text-white"
-            >
-              ×
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => onRemove(i)}
+                className="ml-1 text-gray-400 hover:text-white"
+              >
+                ×
+              </button>
+            )}
           </span>
         ))}
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={tags.length === 0 ? placeholder : ""}
-          className="min-w-[120px] flex-1 bg-transparent font-body text-base text-white placeholder:text-gray-500 outline-none"
-        />
+        {!disabled && (
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={tags.length === 0 ? placeholder : ""}
+            className="min-w-[120px] flex-1 bg-transparent font-body text-base text-white placeholder:text-gray-500 outline-none"
+          />
+        )}
       </div>
       <p className="mt-1 font-body text-[10px] text-gray-500">
-        Press Enter or comma to add
+        {disabled ? "Locked - see note above" : "Press Enter or comma to add"}
       </p>
     </div>
   );
@@ -71,6 +81,7 @@ function TagInput({
 export function FriendForm({
   initialData,
   friendId,
+  hasPlayed = false,
 }: {
   initialData?: {
     name: string;
@@ -85,6 +96,9 @@ export function FriendForm({
     validUntil?: string | Date | null;
   };
   friendId?: string;
+  // True once the friend has played at least once - gift-relevant fields
+  // get locked so B's in-progress prize pool doesn't change under them
+  hasPlayed?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -100,6 +114,7 @@ export function FriendForm({
     initialData?.dislikes ?? []
   );
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [validUntil, setValidUntil] = useState<string>(
     initialData?.validUntil
       ? new Date(initialData.validUntil).toISOString().split("T")[0]
@@ -107,9 +122,11 @@ export function FriendForm({
   );
 
   const isEditMode = !!friendId;
+  const locked = isEditMode && hasPlayed;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError(null);
     const formData = new FormData(e.currentTarget);
 
     const data = {
@@ -137,7 +154,11 @@ export function FriendForm({
         : await createFriend(data);
 
       if ("error" in result) {
-        setErrors(result.error as Record<string, string[]>);
+        if (typeof result.error === "string") {
+          setFormError(result.error);
+        } else {
+          setErrors(result.error as Record<string, string[]>);
+        }
         return;
       }
 
@@ -160,6 +181,21 @@ export function FriendForm({
       <div aria-hidden="true" style={{ position: "absolute", left: "-9999px" }}>
         <input name="_honeypot" type="text" tabIndex={-1} autoComplete="off" />
       </div>
+
+      {locked && (
+        <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 font-body text-xs text-yellow-200">
+          Your friend already started playing, so interests, hobbies,
+          dislikes, budget, currency, and notes are locked to keep their
+          remaining draws from a different prize pool. You can still update
+          the name, theme, or deadline.
+        </div>
+      )}
+
+      {formError && (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 font-body text-xs text-red-400">
+          {formError}
+        </div>
+      )}
 
       <div>
         <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
@@ -187,6 +223,7 @@ export function FriendForm({
         onRemove={(i) =>
           setInterests((prev) => prev.filter((_, idx) => idx !== i))
         }
+        disabled={locked}
       />
       {errors.interests && (
         <p className="-mt-4 font-body text-xs text-red-500">
@@ -202,6 +239,7 @@ export function FriendForm({
         onRemove={(i) =>
           setHobbies((prev) => prev.filter((_, idx) => idx !== i))
         }
+        disabled={locked}
       />
 
       <TagInput
@@ -212,6 +250,7 @@ export function FriendForm({
         onRemove={(i) =>
           setDislikes((prev) => prev.filter((_, idx) => idx !== i))
         }
+        disabled={locked}
       />
 
       <div>
@@ -223,8 +262,9 @@ export function FriendForm({
             <button
               key={code}
               type="button"
+              disabled={locked}
               onClick={() => setCurrency(code)}
-              className={`rounded px-3 py-1.5 font-pixel text-[8px] transition-all border ${
+              className={`rounded px-3 py-1.5 font-pixel text-[8px] transition-all border disabled:cursor-not-allowed disabled:opacity-50 ${
                 currency === code
                   ? "bg-yellow-400 border-yellow-400 text-gray-900"
                   : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
@@ -248,7 +288,8 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMin ?? ""}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+            disabled={locked}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400 disabled:opacity-50"
           />
           <span className="font-body text-gray-500">-</span>
           <input
@@ -258,7 +299,8 @@ export function FriendForm({
             min={0}
             max={100000000}
             defaultValue={initialData?.budgetMax ?? ""}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+            disabled={locked}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400 disabled:opacity-50"
           />
         </div>
       </div>
@@ -272,7 +314,8 @@ export function FriendForm({
           rows={3}
           placeholder="e.g. She just got promoted, loves vintage aesthetic..."
           defaultValue={initialData?.notes ?? ""}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400"
+          disabled={locked}
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-body text-base text-white placeholder:text-gray-500 outline-none focus:border-yellow-400 disabled:opacity-50"
         />
       </div>
 

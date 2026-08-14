@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getFriend } from "@/lib/actions/friend";
+import { getGameResultCountForFriend } from "@/lib/actions/game";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { FriendForm } from "@/components/friend-form";
 import { isValidUUID } from "@/lib/utils";
@@ -17,6 +18,8 @@ export default async function EditFriendPage({
   const friend = await getFriend(id);
   if (!friend) notFound();
 
+  const playCount = await getGameResultCountForFriend(id);
+
   return (
     <div className="min-h-screen bg-gray-950 bg-pixel-grid px-4 py-12">
       <div className="mx-auto max-w-xl">
@@ -33,6 +36,7 @@ export default async function EditFriendPage({
         <PixelCard dark>
           <FriendForm
             friendId={id}
+            hasPlayed={playCount > 0}
             initialData={{
               name: friend.name,
               interests: friend.interests,
