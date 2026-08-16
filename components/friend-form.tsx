@@ -357,7 +357,7 @@ export function FriendForm({
         <button
           type="button"
           onClick={() => router.push(`/friends/${friendId}`)}
-          className="w-full font-body text-sm text-gray-400 hover:text-gray-600"
+          className="w-full cursor-pointer font-body text-sm text-gray-400 hover:text-gray-600"
         >
           ← Cancel
         </button>
