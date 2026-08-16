@@ -184,10 +184,10 @@ export function FriendForm({
 
       {locked && (
         <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 font-body text-xs text-yellow-200">
-          Your friend already started playing, so interests, hobbies,
-          dislikes, budget, currency, and notes are locked to keep their
-          remaining draws from a different prize pool. You can still update
-          the name, theme, or deadline.
+          Your friend already started playing, so interests, hobbies, dislikes,
+          budget, currency, and notes are locked to keep their remaining draws
+          from a different prize pool. You can still update the name, theme, or
+          deadline.
         </div>
       )}
 
@@ -357,7 +357,7 @@ export function FriendForm({
         <button
           type="button"
           onClick={() => router.push(`/friends/${friendId}`)}
-          className="w-full font-body text-sm text-gray-400 hover:text-gray-600"
+          className="w-full cursor-pointer font-body text-sm text-gray-400 hover:text-gray-600"
         >
           ← Cancel
         </button>
