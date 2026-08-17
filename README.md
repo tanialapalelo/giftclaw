@@ -72,8 +72,11 @@ cp .env.example .env
 ```
 
 ```env
-# Required: PostgreSQL (Supabase)
-DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+# Required: PostgreSQL (Supabase) - pooled connection, used for app queries
+DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Required: PostgreSQL (Supabase) - direct connection, used only for migrations
+DIRECT_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
 
 # Required: Google Gemini AI
 GEMINI_API_KEY="AIza..."
