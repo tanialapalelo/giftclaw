@@ -172,7 +172,15 @@ export function FriendForm({
         });
       }
 
-      router.push(`/friends/${result.id}`);
+      // After a save that invalidated the cached gift suggestions, send the
+      // gift-giver to the gifts page so it triggers (and shows) the real
+      // regeneration - loading /friends/[id] alone wouldn't touch the cache.
+      const destination =
+        isEditMode && "regenerated" in result && result.regenerated
+          ? `/friends/${result.id}/gifts`
+          : `/friends/${result.id}`;
+
+      router.push(destination);
     });
   };
 

@@ -7,6 +7,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelButton } from "@/components/ui/pixel-button";
 import { isValidUUID } from "@/lib/utils";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { RefreshOnFocus } from "@/components/refresh-on-focus";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
 import { MAX_ATTEMPTS } from "@/lib/constants";
@@ -51,6 +52,7 @@ export default async function FriendPage({
 
   return (
     <PixelLayout theme={theme}>
+      <RefreshOnFocus />
       <div className="space-y-6">
         {/* Header */}
         <div>

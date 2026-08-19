@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useThemeMusic } from "@/hooks/use-theme-music";
+import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { MusicToggle } from "./music-toggle";
 import type { ThemeKey } from "@/lib/themes";
 
@@ -214,6 +215,12 @@ export function PlayClient({
 
   const isLocked = alreadyPlayedCount >= maxAttempts;
   const hasPicksSoFar = alreadyPlayedCount > 0;
+
+  // Only refresh while the friend is still looking at the personality card,
+  // before they've grabbed anything - once a game is in progress or picks
+  // exist, a silent refresh could swap gifts out from under client-side
+  // game state (the bug class PR #19/#20 fixed).
+  useRefreshOnFocus(!isLocked && !gameStarted && !hasPicksSoFar);
 
   return (
     <div>

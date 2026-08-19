@@ -178,4 +178,25 @@ describe("updateFriend", () => {
       where: { friendId: FRIEND_ID },
     });
   });
+
+  it("reports regenerated: true when a gift-relevant field changed", async () => {
+    vi.mocked(prisma.gameResult.count).mockResolvedValue(0);
+
+    const result = await updateFriend(
+      FRIEND_ID,
+      formData({ interests: ["gaming", "reading"] })
+    );
+
+    expect("error" in result).toBe(false);
+    expect(result).toMatchObject({ regenerated: true });
+  });
+
+  it("reports regenerated: false for a cosmetic-only edit", async () => {
+    vi.mocked(prisma.gameResult.count).mockResolvedValue(0);
+
+    const result = await updateFriend(FRIEND_ID, formData({ theme: "cute" }));
+
+    expect("error" in result).toBe(false);
+    expect(result).toMatchObject({ regenerated: false });
+  });
 });
