@@ -187,6 +187,18 @@
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+@keyframes progress-sweep {
+  0% {
+    left: -33%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+.animate-progress-sweep {
+  animation: progress-sweep 1.2s ease-in-out infinite;
+}
 .animate-poof {
   animation: poof 0.45s ease-out forwards;
 }

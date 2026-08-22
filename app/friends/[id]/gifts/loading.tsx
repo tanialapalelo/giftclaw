@@ -15,11 +15,8 @@ export default function GiftsLoading() {
           <p className="font-body text-xs text-gray-400 mt-2">
             Finding the perfect gifts for your friend
           </p>
-          <div className="mt-3 h-2 w-full rounded bg-white/10 overflow-hidden">
-            <div
-              className="h-full bg-yellow-400 rounded animate-pulse"
-              style={{ width: "60%" }}
-            />
+          <div className="mt-3 h-2 w-full rounded bg-white/10 overflow-hidden relative">
+            <div className="absolute inset-y-0 w-1/3 rounded bg-yellow-400 animate-progress-sweep" />
           </div>
         </div>
 
