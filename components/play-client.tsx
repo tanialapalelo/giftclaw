@@ -221,8 +221,12 @@ export function PlayClient({
   // before they've grabbed anything - once a game is in progress or picks
   // exist, a silent refresh could swap gifts out from under client-side
   // game state (the bug class PR #19/#20 fixed).
+  // Signal = the actual suggestion content, so the banner only fires when a
+  // refresh pulled in a genuinely different gift set, not on every focus.
+  const giftsSignal = gifts.map((g) => g.name).join("|");
   const justRefreshed = useRefreshOnFocus(
-    !isLocked && !gameStarted && !hasPicksSoFar
+    !isLocked && !gameStarted && !hasPicksSoFar,
+    giftsSignal
   );
 
   return (

@@ -52,7 +52,7 @@ export default async function FriendPage({
 
   return (
     <PixelLayout theme={theme}>
-      <RefreshOnFocus />
+      <RefreshOnFocus signal={`${friend.updatedAt}:${totalPlays}`} />
       <div className="space-y-6">
         {/* Header */}
         <div>

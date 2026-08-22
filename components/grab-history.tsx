@@ -21,6 +21,8 @@ export function GrabHistory({
   onPlayAgain?: () => void;
 }) {
   const [history, setHistory] = useState<GiftSuggestion[]>(localHistory);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [endedEarly, setEndedEarly] = useState(false);
 
   // Load all grabs for this friend from DB (includes previous sessions)
   useEffect(() => {
@@ -95,14 +97,53 @@ export function GrabHistory({
         })}
       </div>
 
-      {/* Keep Playing button, show if there are remaining attempts */}
-      {canPlayAgain && onPlayAgain && (
-        <button
-          onClick={onPlayAgain}
-          className={`rounded-full px-8 py-3 font-pixel text-[10px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
-        >
-          ↩ KEEP PLAYING
-        </button>
+      {endedEarly ? (
+        <div className={`rounded-lg border-2 p-4 space-y-1 ${theme.prize.box}`}>
+          <p className={`font-pixel text-[9px] ${theme.text.primary}`}>
+            🎉 YOU'RE ALL DONE!
+          </p>
+          <p className={`font-body text-xs ${theme.text.secondary}`}>
+            Thanks for playing - your gift-giver can see your picks above.
+          </p>
+        </div>
+      ) : confirmingEnd ? (
+        <div className={`rounded-lg border-2 p-4 space-y-3 ${theme.prize.box}`}>
+          <p className={`font-body text-xs ${theme.text.primary}`}>
+            End your turn now? You won't be able to grab again after this.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => setEndedEarly(true)}
+              className={`rounded-full px-6 py-2 font-pixel text-[9px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
+            >
+              YES, I'M DONE
+            </button>
+            <button
+              onClick={() => setConfirmingEnd(false)}
+              className={`rounded-full border px-6 py-2 font-pixel text-[9px] tracking-widest active:scale-95 transition-transform border-current ${theme.text.secondary}`}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      ) : (
+        canPlayAgain &&
+        onPlayAgain && (
+          <div className="space-y-2">
+            <button
+              onClick={onPlayAgain}
+              className={`rounded-full px-8 py-3 font-pixel text-[10px] tracking-widest active:scale-95 transition-transform ${theme.reveal.button}`}
+            >
+              ↩ KEEP PLAYING
+            </button>
+            <button
+              onClick={() => setConfirmingEnd(true)}
+              className={`block w-full font-body text-xs underline underline-offset-2 ${theme.text.secondary}`}
+            >
+              I'm happy with this, stop here
+            </button>
+          </div>
+        )
       )}
 
       <p className={`font-pixel text-[7px] ${theme.text.secondary}`}>
