@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useThemeMusic } from "@/hooks/use-theme-music";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
+import { RefreshBanner } from "@/components/refresh-banner";
 import { MusicToggle } from "./music-toggle";
 import type { ThemeKey } from "@/lib/themes";
 
@@ -220,10 +221,13 @@ export function PlayClient({
   // before they've grabbed anything - once a game is in progress or picks
   // exist, a silent refresh could swap gifts out from under client-side
   // game state (the bug class PR #19/#20 fixed).
-  useRefreshOnFocus(!isLocked && !gameStarted && !hasPicksSoFar);
+  const justRefreshed = useRefreshOnFocus(
+    !isLocked && !gameStarted && !hasPicksSoFar
+  );
 
   return (
     <div>
+      <RefreshBanner show={justRefreshed} />
       {/* MascotBot overlay */}
       {!botDismissed && (
         <MascotBot
