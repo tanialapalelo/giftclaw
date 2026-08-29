@@ -177,5 +177,6 @@ export async function updateFriend(id: string, formData: unknown) {
     name: friend.name,
     theme: friend.theme,
     shareToken: friend.shareToken,
+    regenerated: giftFieldsChanged,
   };
 }

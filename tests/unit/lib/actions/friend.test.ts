@@ -119,14 +119,18 @@ describe("updateFriend", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.friend.findUnique).mockResolvedValue(
-      STORED_FRIEND as unknown as Awaited<ReturnType<typeof prisma.friend.findUnique>>
+      STORED_FRIEND as unknown as Awaited<
+        ReturnType<typeof prisma.friend.findUnique>
+      >
     );
-    vi.mocked(prisma.friend.update).mockImplementation(
-      (async ({ data }: { data: Record<string, unknown> }) => ({
-        ...STORED_FRIEND,
-        ...data,
-      })) as unknown as typeof prisma.friend.update
-    );
+    vi.mocked(prisma.friend.update).mockImplementation((async ({
+      data,
+    }: {
+      data: Record<string, unknown>;
+    }) => ({
+      ...STORED_FRIEND,
+      ...data,
+    })) as unknown as typeof prisma.friend.update);
   });
 
   it("rejects a gift-relevant field change once the friend has played", async () => {
@@ -177,5 +181,26 @@ describe("updateFriend", () => {
     expect(prisma.giftSuggestion.deleteMany).toHaveBeenCalledWith({
       where: { friendId: FRIEND_ID },
     });
+  });
+
+  it("reports regenerated: true when a gift-relevant field changed", async () => {
+    vi.mocked(prisma.gameResult.count).mockResolvedValue(0);
+
+    const result = await updateFriend(
+      FRIEND_ID,
+      formData({ interests: ["gaming", "reading"] })
+    );
+
+    expect("error" in result).toBe(false);
+    expect(result).toMatchObject({ regenerated: true });
+  });
+
+  it("reports regenerated: false for a cosmetic-only edit", async () => {
+    vi.mocked(prisma.gameResult.count).mockResolvedValue(0);
+
+    const result = await updateFriend(FRIEND_ID, formData({ theme: "cute" }));
+
+    expect("error" in result).toBe(false);
+    expect(result).toMatchObject({ regenerated: false });
   });
 });

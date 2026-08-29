@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useThemeMusic } from "@/hooks/use-theme-music";
+import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
+import { RefreshBanner } from "@/components/refresh-banner";
 import { MusicToggle } from "./music-toggle";
 import type { ThemeKey } from "@/lib/themes";
 
@@ -118,8 +120,8 @@ function AlreadyPlayedView({
           YOU'VE ALREADY PICKED!
         </p>
         <p className={`mt-1 font-body text-xs ${theme.text.secondary}`}>
-          You grabbed {results.length} gift{results.length > 1 ? "s" : ""},
-          your gift-giver can see these picks.
+          You grabbed {results.length} gift{results.length > 1 ? "s" : ""}, your
+          gift-giver can see these picks.
         </p>
         {deadlineText && (
           <p className={`mt-2 font-pixel text-[8px] ${theme.text.accent}`}>
@@ -215,8 +217,21 @@ export function PlayClient({
   const isLocked = alreadyPlayedCount >= maxAttempts;
   const hasPicksSoFar = alreadyPlayedCount > 0;
 
+  // Only refresh while the friend is still looking at the personality card,
+  // before they've grabbed anything - once a game is in progress or picks
+  // exist, a silent refresh could swap gifts out from under client-side
+  // game state (the bug class PR #19/#20 fixed).
+  // Signal = the actual suggestion content, so the banner only fires when a
+  // refresh pulled in a genuinely different gift set, not on every focus.
+  const giftsSignal = gifts.map((g) => g.name).join("|");
+  const justRefreshed = useRefreshOnFocus(
+    !isLocked && !gameStarted && !hasPicksSoFar,
+    giftsSignal
+  );
+
   return (
     <div>
+      <RefreshBanner show={justRefreshed} />
       {/* MascotBot overlay */}
       {!botDismissed && (
         <MascotBot
