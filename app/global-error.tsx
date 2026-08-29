@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 export default function GlobalError({
   error,
@@ -10,8 +11,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Nanti diganti Sentry.captureException(error) di Block testing-ci
-    console.error("Global error:", error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -27,7 +27,7 @@ export default function GlobalError({
 
           <div className="border border-red-400/20 bg-red-400/5 rounded p-6 max-w-xs mx-auto">
             <p className="font-body text-sm text-gray-400 mt-2">
-              {error.message || "An unexpected error occurred."}
+              An unexpected error occurred.
             </p>
             {error.digest && (
               <p className="font-pixel text-[7px] text-gray-600 mt-2">

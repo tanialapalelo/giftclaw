@@ -19,7 +19,7 @@ export function ErrorDisplay({
             SOMETHING WENT WRONG
           </p>
           <p className="font-body text-sm text-gray-400">
-            {error.message || "An unexpected error occurred."}
+            An unexpected error occurred.
           </p>
           {error.digest && (
             <p className="font-pixel text-[7px] text-gray-600 mt-2">
