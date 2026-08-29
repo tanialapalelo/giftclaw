@@ -119,14 +119,18 @@ describe("updateFriend", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.friend.findUnique).mockResolvedValue(
-      STORED_FRIEND as unknown as Awaited<ReturnType<typeof prisma.friend.findUnique>>
+      STORED_FRIEND as unknown as Awaited<
+        ReturnType<typeof prisma.friend.findUnique>
+      >
     );
-    vi.mocked(prisma.friend.update).mockImplementation(
-      (async ({ data }: { data: Record<string, unknown> }) => ({
-        ...STORED_FRIEND,
-        ...data,
-      })) as unknown as typeof prisma.friend.update
-    );
+    vi.mocked(prisma.friend.update).mockImplementation((async ({
+      data,
+    }: {
+      data: Record<string, unknown>;
+    }) => ({
+      ...STORED_FRIEND,
+      ...data,
+    })) as unknown as typeof prisma.friend.update);
   });
 
   it("rejects a gift-relevant field change once the friend has played", async () => {

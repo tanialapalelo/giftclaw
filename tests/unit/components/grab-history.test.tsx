@@ -47,17 +47,11 @@ describe("GrabHistory - stop-early flow", () => {
       />
     );
 
-    await userEvent.click(
-      screen.getByText(/i'm happy with this, stop here/i)
-    );
+    await userEvent.click(screen.getByText(/i'm happy with this, stop here/i));
 
-    expect(
-      screen.getByText(/end your turn now/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/end your turn now/i)).toBeInTheDocument();
     // Not ended yet - just asking
-    expect(
-      screen.queryByText(/you're all done/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/you're all done/i)).not.toBeInTheDocument();
     expect(onPlayAgain).not.toHaveBeenCalled();
   });
 
@@ -72,9 +66,7 @@ describe("GrabHistory - stop-early flow", () => {
       />
     );
 
-    await userEvent.click(
-      screen.getByText(/i'm happy with this, stop here/i)
-    );
+    await userEvent.click(screen.getByText(/i'm happy with this, stop here/i));
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
 
     expect(
@@ -95,9 +87,7 @@ describe("GrabHistory - stop-early flow", () => {
       />
     );
 
-    await userEvent.click(
-      screen.getByText(/i'm happy with this, stop here/i)
-    );
+    await userEvent.click(screen.getByText(/i'm happy with this, stop here/i));
     await userEvent.click(
       screen.getByRole("button", { name: /yes, i'm done/i })
     );

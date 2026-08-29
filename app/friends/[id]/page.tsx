@@ -72,22 +72,44 @@ export default async function FriendPage({
         {/* Profile Card */}
         <PixelCard dark={theme.isDark}>
           <div className="space-y-4">
-            <ProfileRow label="✦ Interests" tags={friend.interests} isDark={theme.isDark} />
-            <ProfileRow label="🎮 Hobbies" tags={friend.hobbies} isDark={theme.isDark} />
-            <ProfileRow label="✕ Dislikes" tags={friend.dislikes} isDark={theme.isDark} />
+            <ProfileRow
+              label="✦ Interests"
+              tags={friend.interests}
+              isDark={theme.isDark}
+            />
+            <ProfileRow
+              label="🎮 Hobbies"
+              tags={friend.hobbies}
+              isDark={theme.isDark}
+            />
+            <ProfileRow
+              label="✕ Dislikes"
+              tags={friend.dislikes}
+              isDark={theme.isDark}
+            />
 
             {(friend.budgetMin || friend.budgetMax) && (
               <div>
-                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
+                <p
+                  className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}
+                >
                   💰 Budget
                 </p>
-                <p className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}>
+                <p
+                  className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}
+                >
                   {friend.budgetMin
-                    ? formatBudget(friend.budgetMin, (friend.currency ?? "IDR") as CurrencyCode)
+                    ? formatBudget(
+                        friend.budgetMin,
+                        (friend.currency ?? "IDR") as CurrencyCode
+                      )
                     : "Any"}{" "}
                   to{" "}
                   {friend.budgetMax
-                    ? formatBudget(friend.budgetMax, (friend.currency ?? "IDR") as CurrencyCode)
+                    ? formatBudget(
+                        friend.budgetMax,
+                        (friend.currency ?? "IDR") as CurrencyCode
+                      )
                     : "Any"}
                 </p>
               </div>
@@ -95,10 +117,14 @@ export default async function FriendPage({
 
             {friend.notes && (
               <div>
-                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
+                <p
+                  className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}
+                >
                   📝 Notes
                 </p>
-                <p className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}>
+                <p
+                  className={`mt-1 font-body text-sm ${theme.isDark ? "text-white/70" : "text-gray-700"}`}
+                >
                   {friend.notes}
                 </p>
               </div>
@@ -106,12 +132,18 @@ export default async function FriendPage({
 
             {deadlineText && (
               <div>
-                <p className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}>
+                <p
+                  className={`font-pixel text-[9px] uppercase ${theme.isDark ? "text-white/40" : "text-gray-500"}`}
+                >
                   ⏰ Link Closes
                 </p>
                 <p
                   className={`mt-1 font-body text-sm ${
-                    isExpired ? "text-red-400" : theme.isDark ? "text-white/70" : "text-gray-700"
+                    isExpired
+                      ? "text-red-400"
+                      : theme.isDark
+                        ? "text-white/70"
+                        : "text-gray-700"
                   }`}
                 >
                   {deadlineText} {isExpired && "- EXPIRED"}
@@ -334,11 +366,23 @@ export default async function FriendPage({
   );
 }
 
-function ProfileRow({ label, tags, isDark = false }: { label: string; tags: string[]; isDark?: boolean }) {
+function ProfileRow({
+  label,
+  tags,
+  isDark = false,
+}: {
+  label: string;
+  tags: string[];
+  isDark?: boolean;
+}) {
   if (tags.length === 0) return null;
   return (
     <div>
-      <p className={`font-pixel text-[9px] uppercase ${isDark ? "text-white/40" : "text-gray-500"}`}>{label}</p>
+      <p
+        className={`font-pixel text-[9px] uppercase ${isDark ? "text-white/40" : "text-gray-500"}`}
+      >
+        {label}
+      </p>
       <div className="mt-1 flex flex-wrap gap-2">
         {tags.map((tag, i) => (
           <span

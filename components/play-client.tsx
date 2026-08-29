@@ -120,8 +120,8 @@ function AlreadyPlayedView({
           YOU'VE ALREADY PICKED!
         </p>
         <p className={`mt-1 font-body text-xs ${theme.text.secondary}`}>
-          You grabbed {results.length} gift{results.length > 1 ? "s" : ""},
-          your gift-giver can see these picks.
+          You grabbed {results.length} gift{results.length > 1 ? "s" : ""}, your
+          gift-giver can see these picks.
         </p>
         {deadlineText && (
           <p className={`mt-2 font-pixel text-[8px] ${theme.text.accent}`}>

@@ -42,9 +42,7 @@ describe("FriendForm edit-mode redirect", () => {
       regenerated: true,
     });
 
-    render(
-      <FriendForm initialData={INITIAL_DATA} friendId="friend-1" />
-    );
+    render(<FriendForm initialData={INITIAL_DATA} friendId="friend-1" />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /save & regenerate gifts/i })
@@ -64,9 +62,7 @@ describe("FriendForm edit-mode redirect", () => {
       regenerated: false,
     });
 
-    render(
-      <FriendForm initialData={INITIAL_DATA} friendId="friend-1" />
-    );
+    render(<FriendForm initialData={INITIAL_DATA} friendId="friend-1" />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /save & regenerate gifts/i })
