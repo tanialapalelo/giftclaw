@@ -1,6 +1,10 @@
 // mock Prisma, unit test is isolated (no DB calls), and we can control return value for edge cases
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getFriend, updateFriend } from "@/lib/actions/friend";
+import {
+  getFriend,
+  getFriendByShareToken,
+  updateFriend,
+} from "@/lib/actions/friend";
 
 // Mock all prisma module
 // vi.mock = Vitest equivalent from jest.mock
@@ -202,5 +206,21 @@ describe("updateFriend", () => {
 
     expect("error" in result).toBe(false);
     expect(result).toMatchObject({ regenerated: false });
+  });
+});
+
+describe("getFriendByShareToken", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("never selects the giver's private id", async () => {
+    vi.mocked(prisma.friend.findUnique).mockResolvedValue(null);
+
+    await getFriendByShareToken("b4e3d2c1-5f6a-4b7c-9d0e-1f2a3b4c5d6e");
+
+    const args = vi.mocked(prisma.friend.findUnique).mock.calls[0][0];
+    expect(args.select).toBeDefined();
+    expect(args.select).not.toHaveProperty("id");
   });
 });
