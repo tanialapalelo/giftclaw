@@ -2,9 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { friendSchema, type FriendFormData } from "@/lib/validations";
+import {
+  earliestValidUntil,
+  friendSchema,
+  type FriendFormData,
+} from "@/lib/validations";
 import { isValidUUID } from "@/lib/utils";
 import { taintObjectReference } from "@/lib/taint";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { Friend } from "@prisma/client";
 
 // Fields that feed the Gemini prompt / affect which gifts get suggested.
@@ -50,6 +55,18 @@ export async function createFriend(formData: unknown) {
 
   if (parsed.data._honeypot !== "") {
     return { error: "BOT_DETECTED" };
+  }
+
+  // Past deadlines are only rejected on create; an edit may legitimately
+  // resubmit a deadline that has since passed
+  if (parsed.data.validUntil && parsed.data.validUntil < earliestValidUntil()) {
+    return { error: { validUntil: ["Deadline can't be in the past"] } };
+  }
+
+  // Checked after validation so malformed submissions don't burn the budget
+  const rateLimit = await checkRateLimit("createFriend");
+  if (!rateLimit.success) {
+    return { error: "Too many profiles created. Try again later." };
   }
 
   // Persist to DB
@@ -137,48 +154,66 @@ export async function updateFriend(id: string, formData: unknown) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
-  const current = await prisma.friend.findUnique({ where: { id } });
-  if (!current) return { error: "Invalid ID" };
-
-  const giftFieldsChanged = GIFT_RELEVANT_FIELDS.some((field) =>
-    isFieldChanged(current[field], parsed.data[field])
-  );
-
-  if (giftFieldsChanged) {
-    const playCount = await prisma.gameResult.count({
-      where: { friendId: id },
-    });
-    if (playCount > 0) {
-      return {
-        error:
-          "Can't change gift details after your friend has started playing. You can still update the theme or deadline.",
-      };
-    }
+  const rateLimit = await checkRateLimit("updateFriend");
+  if (!rateLimit.success) {
+    return { error: "Too many edits. Try again later." };
   }
 
-  const friend = await prisma.friend.update({
-    where: { id },
-    data: {
-      name: parsed.data.name,
-      interests: parsed.data.interests,
-      hobbies: parsed.data.hobbies,
-      dislikes: parsed.data.dislikes,
-      budgetMin: parsed.data.budgetMin,
-      budgetMax: parsed.data.budgetMax,
-      notes: parsed.data.notes,
-      theme: parsed.data.theme,
-      currency: parsed.data.currency,
-      validUntil: parsed.data.validUntil
-        ? new Date(parsed.data.validUntil)
-        : null,
-    },
+  // Check, update, and cache-delete as one unit under the same friend row
+  // lock saveGameResult takes, so a grab can't land between the play-count
+  // check and the cache delete and leave the receiver mid-game with a
+  // deleted prize pool.
+  const outcome = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM friends WHERE id = ${id}::uuid FOR UPDATE`;
+
+    const current = await tx.friend.findUnique({ where: { id } });
+    if (!current) return { error: "Invalid ID" } as const;
+
+    const giftFieldsChanged = GIFT_RELEVANT_FIELDS.some((field) =>
+      isFieldChanged(current[field], parsed.data[field])
+    );
+
+    if (giftFieldsChanged) {
+      const playCount = await tx.gameResult.count({
+        where: { friendId: id },
+      });
+      if (playCount > 0) {
+        return {
+          error:
+            "Can't change gift details after your friend has started playing. You can still update the theme or deadline.",
+        } as const;
+      }
+    }
+
+    const friend = await tx.friend.update({
+      where: { id },
+      data: {
+        name: parsed.data.name,
+        interests: parsed.data.interests,
+        hobbies: parsed.data.hobbies,
+        dislikes: parsed.data.dislikes,
+        budgetMin: parsed.data.budgetMin,
+        budgetMax: parsed.data.budgetMax,
+        notes: parsed.data.notes,
+        theme: parsed.data.theme,
+        currency: parsed.data.currency,
+        validUntil: parsed.data.validUntil
+          ? new Date(parsed.data.validUntil)
+          : null,
+      },
+    });
+
+    if (giftFieldsChanged) {
+      await tx.giftSuggestion.deleteMany({
+        where: { friendId: id },
+      });
+    }
+
+    return { friend, giftFieldsChanged };
   });
 
-  if (giftFieldsChanged) {
-    await prisma.giftSuggestion.deleteMany({
-      where: { friendId: id },
-    });
-  }
+  if ("error" in outcome) return { error: outcome.error };
+  const { friend, giftFieldsChanged } = outcome;
 
   revalidatePath(`/friends/${id}`);
   revalidatePath(`/play/${friend.shareToken}`);

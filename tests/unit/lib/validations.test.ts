@@ -2,7 +2,7 @@
 // so no need to mock anything, and we can cover all edge cases easily.
 // If validations are wrong, then all flows are wrong, so better to catch early.
 import { describe, it, expect } from "vitest";
-import { friendSchema } from "@/lib/validations";
+import { earliestValidUntil, friendSchema } from "@/lib/validations";
 
 const baseInput = {
   name: "Sarah",
@@ -121,5 +121,44 @@ describe("friendSchema", () => {
   it("accepts when honeypot is empty string", () => {
     const result = friendSchema.safeParse({ ...baseInput, _honeypot: "" });
     expect(result.success).toBe(true);
+  });
+
+  // VALID UNTIL
+  it("accepts a YYYY-MM-DD validUntil", () => {
+    const result = friendSchema.safeParse({
+      ...baseInput,
+      validUntil: "2030-12-31",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a null validUntil", () => {
+    const result = friendSchema.safeParse({ ...baseInput, validUntil: null });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a validUntil that is not a date", () => {
+    const result = friendSchema.safeParse({
+      ...baseInput,
+      validUntil: "not-a-date",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.flatten().fieldErrors.validUntil).toBeDefined();
+  });
+
+  it("rejects an impossible calendar date", () => {
+    const result = friendSchema.safeParse({
+      ...baseInput,
+      validUntil: "2030-02-31",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("earliestValidUntil", () => {
+  it("is the day before today in UTC", () => {
+    expect(earliestValidUntil(new Date("2026-03-01T05:00:00Z"))).toBe(
+      "2026-02-28"
+    );
   });
 });

@@ -1,6 +1,7 @@
 // mock Prisma, unit test is isolated (no DB calls), and we can control return value for edge cases
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  createFriend,
   getFriend,
   getFriendByShareToken,
   updateFriend,
@@ -21,7 +22,15 @@ vi.mock("@/lib/prisma", () => ({
     giftSuggestion: {
       deleteMany: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $transaction: vi.fn(),
   },
+}));
+
+// Rate limiting is covered in rate-limit.test.ts; here every call is allowed
+// unless a test says otherwise
+vi.mock("@/lib/rate-limit", () => ({
+  checkRateLimit: vi.fn(async () => ({ success: true })),
 }));
 
 // updateFriend calls revalidatePath, which needs a request-scoped Next.js
@@ -32,6 +41,15 @@ vi.mock("next/cache", () => ({
 
 // Import after mock, so we get the mocked version
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+// Run interactive transactions against the same mocked client, so assertions
+// on prisma.friend.update etc. still see calls made through `tx`
+function passThroughTransaction() {
+  vi.mocked(prisma.$transaction).mockImplementation((async (
+    cb: (tx: typeof prisma) => Promise<unknown>
+  ) => cb(prisma)) as unknown as typeof prisma.$transaction);
+}
 
 describe("getFriend", () => {
   beforeEach(() => {
@@ -122,6 +140,7 @@ describe("updateFriend", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    passThroughTransaction();
     vi.mocked(prisma.friend.findUnique).mockResolvedValue(
       STORED_FRIEND as unknown as Awaited<
         ReturnType<typeof prisma.friend.findUnique>
@@ -206,6 +225,135 @@ describe("updateFriend", () => {
 
     expect("error" in result).toBe(false);
     expect(result).toMatchObject({ regenerated: false });
+  });
+
+  it("takes the friend row lock inside a transaction before checking plays", async () => {
+    vi.mocked(prisma.gameResult.count).mockResolvedValue(0);
+
+    await updateFriend(FRIEND_ID, formData({ interests: ["reading"] }));
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    const lockSql = (
+      vi.mocked(prisma.$queryRaw).mock.calls[0][0] as unknown as string[]
+    ).join("?");
+    expect(lockSql).toContain("FOR UPDATE");
+    // Lock first, then read, then write
+    const lockOrder = vi.mocked(prisma.$queryRaw).mock.invocationCallOrder[0];
+    expect(lockOrder).toBeLessThan(
+      vi.mocked(prisma.friend.findUnique).mock.invocationCallOrder[0]
+    );
+    expect(
+      vi.mocked(prisma.friend.update).mock.invocationCallOrder[0]
+    ).toBeLessThan(
+      vi.mocked(prisma.giftSuggestion.deleteMany).mock.invocationCallOrder[0]
+    );
+  });
+
+  it("returns a field error instead of throwing for an invalid validUntil", async () => {
+    const result = await updateFriend(
+      FRIEND_ID,
+      formData({ validUntil: "not-a-date" })
+    );
+
+    expect(result).toEqual({
+      error: expect.objectContaining({ validUntil: expect.any(Array) }),
+    });
+    expect(prisma.friend.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses the edit when the update limiter is exhausted", async () => {
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({
+      success: false,
+      limit: 30,
+      remaining: 0,
+    });
+
+    const result = await updateFriend(FRIEND_ID, formData({ theme: "cute" }));
+
+    expect(result).toEqual({ error: "Too many edits. Try again later." });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
+
+describe("createFriend", () => {
+  const validInput = {
+    name: "Sarah",
+    interests: ["gaming"],
+    hobbies: [],
+    dislikes: [],
+    budgetMin: null,
+    budgetMax: null,
+    notes: null,
+    theme: "soft",
+    currency: "IDR",
+    validUntil: null,
+    _honeypot: "",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(checkRateLimit).mockResolvedValue({ success: true });
+    vi.mocked(prisma.friend.create).mockImplementation((async ({
+      data,
+    }: {
+      data: Record<string, unknown>;
+    }) => ({
+      ...data,
+      id: "a3f2c1d0-4e5f-4a6b-8c9d-0e1f2a3b4c5d",
+      shareToken: "b4e3d2c1-5f6a-4b7c-9d0e-1f2a3b4c5d6e",
+    })) as unknown as typeof prisma.friend.create);
+  });
+
+  it("throttles a scripted burst of 25 creates once the limiter runs out", async () => {
+    // Stand-in for the real create-friend limiter (10 per hour per IP)
+    let used = 0;
+    vi.mocked(checkRateLimit).mockImplementation(async () =>
+      ++used <= 10
+        ? { success: true }
+        : { success: false, limit: 10, remaining: 0 }
+    );
+
+    const results = await Promise.all(
+      Array.from({ length: 25 }, () => createFriend(validInput))
+    );
+
+    expect(checkRateLimit).toHaveBeenCalledWith("createFriend");
+    expect(results.filter((r) => "id" in r)).toHaveLength(10);
+    expect(results.filter((r) => "error" in r)).toHaveLength(15);
+    expect(prisma.friend.create).toHaveBeenCalledTimes(10);
+  });
+
+  it("returns a field error instead of throwing for an invalid validUntil", async () => {
+    const result = await createFriend({
+      ...validInput,
+      validUntil: "not-a-date",
+    });
+
+    expect(result).toEqual({
+      error: expect.objectContaining({ validUntil: expect.any(Array) }),
+    });
+    expect(prisma.friend.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a deadline in the past", async () => {
+    const result = await createFriend({
+      ...validInput,
+      validUntil: "2020-01-01",
+    });
+
+    expect(result).toEqual({
+      error: { validUntil: ["Deadline can't be in the past"] },
+    });
+    expect(prisma.friend.create).not.toHaveBeenCalled();
+  });
+
+  it("accepts today as a deadline", async () => {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const result = await createFriend({ ...validInput, validUntil: today });
+
+    expect("id" in result).toBe(true);
+    expect(prisma.friend.create).toHaveBeenCalled();
   });
 });
 

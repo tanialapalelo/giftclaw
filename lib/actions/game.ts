@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { isValidUUID } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { GiftSuggestion } from "@/types";
 
 export type GameResultWithGift = {
@@ -27,6 +28,10 @@ export async function getGameResultsForFriend(
   shareToken: string
 ): Promise<GameResultsResponse> {
   if (!isValidUUID(shareToken)) return null;
+
+  // Callers already treat null as "no history to show"
+  const rateLimit = await checkRateLimit("readGameResults");
+  if (!rateLimit.success) return null;
 
   try {
     const friend = await prisma.friend.findUnique({
