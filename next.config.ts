@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { securityHeaders } from "./lib/security-headers";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -11,6 +12,18 @@ const nextConfig: NextConfig = {
       // are a few KB, so cap well below that to limit JSONB stuffing.
       bodySizeLimit: "64kb",
     },
+  },
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders({
+          isDev: process.env.NODE_ENV === "development",
+          sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+        }),
+      },
+    ];
   },
 };
 
