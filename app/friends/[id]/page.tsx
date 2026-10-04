@@ -11,6 +11,7 @@ import { RefreshOnFocus } from "@/components/refresh-on-focus";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { getVibeFromGift } from "@/lib/vibe";
 import { MAX_ATTEMPTS } from "@/lib/constants";
+import { isLinkExpired } from "@/lib/link-expiry";
 import { formatBudget } from "@/lib/currency";
 import type { CurrencyCode } from "@/lib/currency";
 
@@ -42,13 +43,7 @@ export default async function FriendPage({
         year: "numeric",
       })
     : null;
-  const isExpired =
-    validUntil !== null &&
-    (() => {
-      const eod = new Date(validUntil);
-      eod.setHours(23, 59, 59, 999);
-      return new Date() > eod;
-    })();
+  const isExpired = isLinkExpired(validUntil);
 
   return (
     <PixelLayout theme={theme}>

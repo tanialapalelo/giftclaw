@@ -8,8 +8,14 @@ import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
 import { taintUniqueValue } from "@/lib/taint";
-import { MAX_ATTEMPTS } from "@/lib/constants";
+import { MAX_ATTEMPTS, COPIES } from "@/lib/constants";
 import type { GiftSuggestion } from "@/types";
+import type { Prisma } from "@prisma/client";
+import { isLinkExpired } from "@/lib/link-expiry";
+import {
+  saveGameResultSchema,
+  type SaveGameResultInput,
+} from "@/lib/validations";
 
 export async function getGiftSuggestions(friendId: string) {
   if (!isValidUUID(friendId)) return { error: "Invalid ID" };
@@ -146,26 +152,20 @@ async function loadGiftSuggestions(friendId: string) {
   }
 }
 
-export async function saveGameResult({
-  shareToken,
-  sessionId,
-  grabIndex,
-  giftSnapshot,
-}: {
-  shareToken: string;
-  sessionId: string;
-  grabIndex: number;
-  giftSnapshot: object;
-}) {
-  if (!isValidUUID(shareToken) || !isValidUUID(sessionId))
-    return { error: "Invalid ID" };
+export async function saveGameResult(input: SaveGameResultInput) {
+  // Server actions are reachable by direct POST, so the typed signature is
+  // only a hint for our own call site; the schema is the real gate.
+  const parsed = saveGameResultSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+  const { shareToken, sessionId, targetIndex } = parsed.data;
 
   try {
     const friend = await prisma.friend.findUnique({
       where: { shareToken },
-      select: { id: true },
+      select: { id: true, validUntil: true },
     });
     if (!friend) return { error: "Friend not found" };
+    if (isLinkExpired(friend.validUntil)) return { error: "Link expired" };
 
     return await prisma.$transaction(async (tx) => {
       // Row-lock the friend so a second, near-simultaneous grab (two tabs,
@@ -174,22 +174,51 @@ export async function saveGameResult({
       // transactions reading the same stale count and both passing.
       await tx.$queryRaw`SELECT id FROM friends WHERE id = ${friend.id}::uuid FOR UPDATE`;
 
-      const attemptCount = await tx.gameResult.count({
+      // The gift is looked up here, never taken from the client, so the
+      // giver's dashboard only ever shows gifts the AI actually suggested.
+      const latest = await tx.giftSuggestion.findFirst({
         where: { friendId: friend.id },
+        orderBy: { createdAt: "desc" },
+        select: { suggestions: true },
       });
-      if (attemptCount >= MAX_ATTEMPTS) {
-        return { error: "Attempt limit reached" };
+      const suggestions = latest?.suggestions;
+      if (!Array.isArray(suggestions)) return { error: "No gifts to grab" };
+
+      const gift = suggestions[targetIndex] as unknown as
+        | GiftSuggestion
+        | undefined;
+      if (!gift || typeof gift.name !== "string") {
+        return { error: "Invalid gift" };
       }
 
+      const previous = await tx.gameResult.findMany({
+        where: { friendId: friend.id },
+        select: { giftSnapshot: true },
+      });
+      if (previous.length >= MAX_ATTEMPTS) {
+        return { error: "Attempt limit reached" };
+      }
+      const timesGrabbed = previous.filter(
+        (r) =>
+          (r.giftSnapshot as unknown as GiftSuggestion | null)?.name ===
+          gift.name
+      ).length;
+      if (timesGrabbed >= COPIES) {
+        return { error: "Gift already grabbed" };
+      }
+
+      // Derived under the lock, so it is always 1..MAX_ATTEMPTS and never
+      // repeats for this friend (the DB enforces both as a backstop).
+      const grabIndex = previous.length + 1;
       await tx.gameResult.create({
         data: {
           friendId: friend.id,
           sessionId,
           grabIndex,
-          giftSnapshot,
+          giftSnapshot: gift as unknown as Prisma.InputJsonObject,
         },
       });
-      return { success: true };
+      return { success: true as const, grabIndex };
     });
   } catch {
     return { error: "Failed to save result" };

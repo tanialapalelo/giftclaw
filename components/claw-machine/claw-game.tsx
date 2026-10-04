@@ -278,14 +278,14 @@ export function ClawGame({
   useEffect(() => {
     if (phase === "dropping" && currentGift && !autoSavedRef.current) {
       autoSavedRef.current = true;
-      const grabIndex = previousGrabCount + grabHistory.length + 1;
       // Allow the same gift name multiple times, grabHistory.length drives the attempt counter
       setGrabHistory((prev) => [...prev, currentGift]);
+      // Send only which gift was grabbed (its index in the server's list);
+      // the server snapshots the gift and numbers the grab itself.
       void saveGameResult({
         shareToken,
         sessionId: sessionId.current,
-        grabIndex,
-        giftSnapshot: currentGift,
+        targetIndex: gifts.indexOf(currentGift),
       });
     }
     if (phase === "moving") {
