@@ -86,7 +86,10 @@ UPSTASH_REDIS_REST_URL="https://xxxx.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="xxxx"
 
 # Required: Sentry (error monitoring)
+NEXT_PUBLIC_SENTRY_DSN="https://...@o0.ingest.sentry.io/0"
 SENTRY_AUTH_TOKEN="sntrys_..."
+SENTRY_ORG="your-org-slug"
+SENTRY_PROJECT="your-project-slug"
 
 # Optional: used for SEO/OG metadata (defaults to giftclaw.vercel.app)
 NEXT_PUBLIC_APP_URL="https://your-domain.com"
