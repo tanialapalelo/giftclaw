@@ -32,6 +32,18 @@ function hash(a: number, b: number, c: number): number {
   return ((s ^ (s >>> 16)) >>> 0) / 0xffffffff;
 }
 
+// Must track the machine interior's actual pixel size (h-80 in
+// machine-frame.tsx) and the prize container's top/bottom insets below
+// (top: `${PILE_TOP_PCT}%`, bottom: `${PILE_BOTTOM_PCT}%`); otherwise
+// the pile's usable height drifts out of sync and leaves a gap above
+// the floor.
+const INTERIOR_H = 320;
+const PILE_TOP_PCT = 18;
+const PILE_BOTTOM_PCT = 6;
+const PILE_H = Math.round(
+  (INTERIOR_H * (100 - PILE_TOP_PCT - PILE_BOTTOM_PCT)) / 100
+);
+
 export function ClawGame({
   gifts,
   theme,
@@ -86,18 +98,6 @@ export function ClawGame({
   const { phase, clawX, clawY, targetX, grabbedPrize } = state;
 
   const nGifts = stableGifts.length;
-  // Must track the machine interior's actual pixel size (h-80 in
-  // machine-frame.tsx) and the prize container's top/bottom insets below
-  // (top: `${PILE_TOP_PCT}%`, bottom: `${PILE_BOTTOM_PCT}%`) — otherwise
-  // the pile's usable height drifts out of sync and leaves a gap above
-  // the floor.
-  const INTERIOR_H = 320;
-  const PILE_TOP_PCT = 18;
-  const PILE_BOTTOM_PCT = 6;
-  const PILE_H = Math.round(
-    (INTERIOR_H * (100 - PILE_TOP_PCT - PILE_BOTTOM_PCT)) / 100
-  );
-
   const boxPx = Math.max(
     44,
     Math.min(60, Math.floor(260 / Math.max(nGifts, 1)))
@@ -126,7 +126,7 @@ export function ClawGame({
     const rows = Math.max(2, Math.min(4, Math.round(Math.sqrt(n / 1.5))));
     const cols = Math.ceil(n / rows);
     // Boxes render downward from their yPx anchor (bow + box body), so the
-    // usable vertical range has to leave room for that height — otherwise
+    // usable vertical range has to leave room for that height; otherwise
     // the bottom row draws past the container and over the machine floor.
     const itemH = boxPx * 1.3;
     const usableH = Math.max(PILE_H - itemH, itemH);

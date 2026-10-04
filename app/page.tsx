@@ -68,16 +68,8 @@ export default async function HomePage() {
 
         {/* ── HERO ── */}
         <div className="text-center space-y-4">
-          {/* Fallback: emoji animate float */}
+          {/* Floating emoji hero icon */}
           <div className="relative inline-block">
-            {/* later will try with Kenney sprite, for now just emoji
-                <Image
-                  src="/assets/kenney/ui/panel_blue.png"
-                  width={80} height={80}
-                  alt="arcade cabinet"
-                  className="pixel-render animate-float mx-auto"
-                /> 
-            */}
             <div className="animate-float inline-block text-6xl">🕹️</div>
 
             {/* Pixel sparkles around icon */}
@@ -178,7 +170,7 @@ export default async function HomePage() {
                   {step}
                 </span>
 
-                {/* Icon, swap dengan Kenney sprite nanti */}
+                {/* Icon */}
                 <span className="text-xl">{icon}</span>
 
                 {/* Text */}

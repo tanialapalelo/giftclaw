@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createFriend, updateFriend } from "@/lib/actions/friend";
 import { saveProfileToLocalStorage } from "@/components/recent-profiles";
@@ -26,16 +26,21 @@ function TagInput({
   disabled?: boolean;
 }) {
   const [input, setInput] = useState("");
+  const inputId = useId();
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === "Enter" || e.key === ",") && input.trim()) {
       e.preventDefault();
-      onAdd(input.trim());
+      // Skip duplicates so each tag can key its own chip
+      if (!tags.includes(input.trim())) onAdd(input.trim());
       setInput("");
     }
   };
   return (
     <div>
-      <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+      <label
+        htmlFor={inputId}
+        className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+      >
         {label}
       </label>
       <div
@@ -45,7 +50,7 @@ function TagInput({
       >
         {tags.map((tag, i) => (
           <span
-            key={i}
+            key={tag}
             className="flex items-center gap-1 rounded bg-gray-700 px-2 py-1 font-body text-xs text-white"
           >
             {tag}
@@ -62,6 +67,7 @@ function TagInput({
         ))}
         {!disabled && (
           <input
+            id={inputId}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -206,10 +212,14 @@ export function FriendForm({
       )}
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+        <label
+          htmlFor="friend-name"
+          className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+        >
           Friend&apos;s Name
         </label>
         <input
+          id="friend-name"
           name="name"
           type="text"
           placeholder="e.g. Sarah"
@@ -262,10 +272,17 @@ export function FriendForm({
       />
 
       <div>
-        <label className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+        <p
+          id="budget-currency-label"
+          className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+        >
           Budget Currency
-        </label>
-        <div className="flex flex-wrap gap-2">
+        </p>
+        <div
+          role="group"
+          aria-labelledby="budget-currency-label"
+          className="flex flex-wrap gap-2"
+        >
           {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
             <button
               key={code}
@@ -285,11 +302,15 @@ export function FriendForm({
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+        <label
+          htmlFor="budget-min"
+          className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+        >
           Budget ({currency})
         </label>
         <div className="flex items-center gap-3">
           <input
+            id="budget-min"
             name="budgetMin"
             type="number"
             placeholder="Min e.g. 100000"
@@ -302,6 +323,7 @@ export function FriendForm({
           <span className="font-body text-gray-500">-</span>
           <input
             name="budgetMax"
+            aria-label={`Maximum budget (${currency})`}
             type="number"
             placeholder="Max e.g. 500000"
             min={0}
@@ -314,10 +336,14 @@ export function FriendForm({
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+        <label
+          htmlFor="friend-notes"
+          className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+        >
           Extra Notes
         </label>
         <textarea
+          id="friend-notes"
           name="notes"
           rows={3}
           placeholder="e.g. She just got promoted, loves vintage aesthetic..."
@@ -328,13 +354,17 @@ export function FriendForm({
       </div>
 
       <div>
-        <label className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+        <label
+          htmlFor="link-deadline"
+          className="mb-1 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+        >
           Link Deadline{" "}
           <span className="normal-case font-body text-gray-500">
             (optional)
           </span>
         </label>
         <input
+          id="link-deadline"
           type="date"
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}

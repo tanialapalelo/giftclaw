@@ -73,7 +73,7 @@ cp .env.example .env
 
 ```env
 # Required: PostgreSQL (Supabase) - pooled connection, used for app queries
-DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
 # Required: PostgreSQL (Supabase) - direct connection, used only for migrations
 DIRECT_URL="postgresql://postgres.xxxx:password@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
