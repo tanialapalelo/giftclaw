@@ -107,9 +107,15 @@ async function loadGiftSuggestions(friendId: string) {
     });
 
     // Persist result so subsequent loads hit the cache instead of Gemini
-    await prisma.giftSuggestion.create({
-      data: {
+    // Upsert on the unique friendId so concurrent first loads leave one row
+    await prisma.giftSuggestion.upsert({
+      where: { friendId },
+      create: {
         friendId,
+        suggestions: result.suggestions,
+        modelVersion: "gemini-2.5-flash",
+      },
+      update: {
         suggestions: result.suggestions,
         modelVersion: "gemini-2.5-flash",
       },
