@@ -314,7 +314,7 @@ describe("getGiftSuggestionsByShareToken", () => {
       id: FRIEND_ID,
     } as unknown as Awaited<ReturnType<typeof prisma.friend.findUnique>>);
     vi.mocked(prisma.giftSuggestion.findFirst).mockResolvedValue({
-      suggestions: [GIFT_SNAPSHOT],
+      suggestions: SUGGESTIONS,
       modelVersion: "test",
     } as unknown as Awaited<ReturnType<typeof prisma.giftSuggestion.findFirst>>);
 
@@ -327,7 +327,7 @@ describe("getGiftSuggestionsByShareToken", () => {
     expect(prisma.giftSuggestion.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { friendId: FRIEND_ID } })
     );
-    expect(result).toMatchObject({ suggestions: [GIFT_SNAPSHOT], cached: true });
+    expect(result).toMatchObject({ suggestions: SUGGESTIONS, cached: true });
     // The friend id is only used to look up suggestions, never returned
     expect(JSON.stringify(result)).not.toContain(FRIEND_ID);
   });
