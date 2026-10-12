@@ -214,7 +214,7 @@ giftclaw/
 - **Input sanitization**: Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
 - **Honeypot field**: Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.
 - **UUID guard**: All `[id]` and `[shareToken]` routes validate format before hitting the DB.
-- **Link expiry**: Gift giver can set a `validUntil` date; expired links show a locked screen.
+- **Link expiry**: Gift giver can set a `validUntil` date; a link stays open through the end of that calendar day (UTC), then shows a locked screen. Game results are saved server-side and rejected for expired links (see `lib/link-expiry.ts`).
 
 ---
 

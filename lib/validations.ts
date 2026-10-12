@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidUUID } from "@/lib/utils";
 
 // Sanitize helper, trim whitespace + strip HTML tags, prevent XSS attack
 const sanitizedString = (max: number) =>
@@ -64,3 +65,19 @@ export function earliestValidUntil(now: Date = new Date()): string {
 }
 
 export type FriendFormData = z.infer<typeof friendSchema>;
+
+const uuidString = z.string().refine(isValidUUID, "Invalid ID");
+
+// Input for saveGameResult. The client only says WHICH gift it grabbed (an
+// index into the latest suggestion list); the server looks up the gift and
+// derives the grab number itself. .strict() rejects any extra key, so a
+// caller can't sneak in a giftSnapshot or grabIndex of its own.
+export const saveGameResultSchema = z
+  .object({
+    shareToken: uuidString,
+    sessionId: uuidString,
+    targetIndex: z.number().int().min(0),
+  })
+  .strict();
+
+export type SaveGameResultInput = z.infer<typeof saveGameResultSchema>;

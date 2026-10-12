@@ -54,5 +54,8 @@ model GameResult {
 
   friend Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
 
+  // grab_index is also CHECKed to 1..3 in SQL (Prisma can't model CHECKs);
+  // see migration 20261004000000_game_result_grab_index_guards.
+  @@unique([friendId, grabIndex])
   @@map("game_results")
 }
