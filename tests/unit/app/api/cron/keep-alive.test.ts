@@ -68,7 +68,7 @@ describe("GET /api/cron/keep-alive", () => {
       const response = await GET(
         new Request("http://localhost/api/cron/keep-alive", {
           headers: { Authorization: header },
-        }),
+        })
       );
       expect(response.status).toBe(401);
     }
@@ -80,7 +80,7 @@ describe("GET /api/cron/keep-alive", () => {
     const response = await GET(
       new Request("http://localhost/api/cron/keep-alive", {
         headers: { Authorization: "Bearer nope" },
-      }),
+      })
     );
     expect(response.status).toBe(401);
   });
@@ -90,7 +90,7 @@ describe("GET /api/cron/keep-alive", () => {
     const response = await GET(
       new Request("http://localhost/api/cron/keep-alive", {
         headers: { Authorization: "Bearer test-secret" },
-      }),
+      })
     );
     const body = await response.json();
 
@@ -104,7 +104,7 @@ describe("GET /api/cron/keep-alive", () => {
     const response = await GET(
       new Request("http://localhost/api/cron/keep-alive", {
         headers: { Authorization: "Bearer test-secret" },
-      }),
+      })
     );
     const body = await response.json();
 

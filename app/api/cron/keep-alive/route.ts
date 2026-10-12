@@ -22,7 +22,10 @@ function isAuthorized(authHeader: string | null): boolean {
   return timingSafeEqual(expected, actual);
 }
 
-async function check(name: string, fn: () => Promise<unknown>): Promise<boolean> {
+async function check(
+  name: string,
+  fn: () => Promise<unknown>
+): Promise<boolean> {
   try {
     await fn();
     return true;
@@ -46,6 +49,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json(
     { ok, redis, db, ts: new Date().toISOString() },
-    { status: ok ? 200 : 503 },
+    { status: ok ? 200 : 503 }
   );
 }
