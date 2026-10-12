@@ -321,7 +321,9 @@ describe("getGiftSuggestionsByShareToken", () => {
     vi.mocked(prisma.giftSuggestion.findFirst).mockResolvedValue({
       suggestions: SUGGESTIONS,
       modelVersion: "test",
-    } as unknown as Awaited<ReturnType<typeof prisma.giftSuggestion.findFirst>>);
+    } as unknown as Awaited<
+      ReturnType<typeof prisma.giftSuggestion.findFirst>
+    >);
 
     const result = await getGiftSuggestionsByShareToken(SHARE_TOKEN);
 

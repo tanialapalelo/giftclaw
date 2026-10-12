@@ -50,7 +50,6 @@ export async function getGiftSuggestionsByShareToken(shareToken: string) {
 }
 
 async function loadGiftSuggestions(friendId: string) {
-
   // Return cached result if one exists, avoids redundant Gemini calls
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },
