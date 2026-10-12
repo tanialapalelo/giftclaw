@@ -371,7 +371,7 @@ describe("getGiftSuggestions", () => {
     }));
     vi.doMock("@/lib/gemini", () => ({ analyzeGifts }));
     vi.doMock("@/lib/rate-limit", () => ({
-      rateLimiter: { limit: vi.fn().mockResolvedValue({ success: true }) },
+      checkRateLimit: vi.fn().mockResolvedValue({ success: true }),
     }));
     vi.doMock("next/headers", () => ({
       headers: vi.fn().mockResolvedValue(new Headers()),
