@@ -178,7 +178,7 @@ export function ClawGame({
       };
     });
     return items.sort((a, b) => a.zIndex - b.zIndex);
-  }, [stableGifts, shuffleKey, nGifts, grabCounts, boxPx]);
+  }, [stableGifts, shuffleKey, grabCounts, boxPx]);
 
   const handleGrab = useCallback(() => {
     if (phase !== "moving") return;

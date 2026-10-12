@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import type { GiftSuggestion } from "@/types";

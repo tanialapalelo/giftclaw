@@ -6,6 +6,7 @@ export function RefreshBanner({ show }: { show: boolean }) {
     <div
       role="status"
       aria-live="polite"
+      aria-hidden={!show}
       className={`pointer-events-none fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-full border border-yellow-400/40 bg-gray-900 px-4 py-2 font-pixel text-[8px] uppercase tracking-wider text-yellow-300 shadow-lg transition-opacity duration-500 ${
         show ? "opacity-100" : "opacity-0"
       }`}

@@ -86,7 +86,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${pixelFont.variable} ${bodyFont.variable}`}>
       <body className="antialiased">
-        {children}
+        <main>{children}</main>
         <Analytics />
         <SpeedInsights />
       </body>
