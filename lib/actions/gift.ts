@@ -7,11 +7,37 @@ import { rateLimiter } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
+import { taintUniqueValue } from "@/lib/taint";
 import { MAX_ATTEMPTS } from "@/lib/constants";
 import type { GiftSuggestion } from "@/types";
 
 export async function getGiftSuggestions(friendId: string) {
   if (!isValidUUID(friendId)) return { error: "Invalid ID" };
+  return loadGiftSuggestions(friendId);
+}
+
+// Receiver-facing variant: resolves the friend by shareToken on the server so
+// the play page never needs (or ships) the giver's private friend id
+export async function getGiftSuggestionsByShareToken(shareToken: string) {
+  if (!isValidUUID(shareToken)) return { error: "Invalid ID" };
+
+  const friend = await prisma.friend.findUnique({
+    where: { shareToken },
+    select: { id: true },
+  });
+  if (!friend) return { error: "Friend not found" };
+  // Backstop: React refuses to serialize this id to the client while the
+  // friend row is alive, so it cannot leak into the play page payload
+  taintUniqueValue(
+    "Do not pass the giver's private friend id to the receiver.",
+    friend,
+    friend.id
+  );
+
+  return loadGiftSuggestions(friend.id);
+}
+
+async function loadGiftSuggestions(friendId: string) {
 
   // Return cached result if one exists, avoids redundant Gemini calls
   const cached = await prisma.giftSuggestion.findFirst({

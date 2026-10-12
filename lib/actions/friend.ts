@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { friendSchema, type FriendFormData } from "@/lib/validations";
 import { isValidUUID } from "@/lib/utils";
+import { taintObjectReference } from "@/lib/taint";
 import type { Friend } from "@prisma/client";
 
 // Fields that feed the Gemini prompt / affect which gifts get suggested.
@@ -98,12 +99,14 @@ export async function getFriend(id: string) {
   }
 }
 
+// Receiver-facing lookup. Never select `id` here: it is the giver's private
+// capability, and anything this returns can end up in the play page's RSC
+// payload. Use getGiftSuggestionsByShareToken for data keyed by friend id.
 export async function getFriendByShareToken(shareToken: string) {
   try {
     const friend = await prisma.friend.findUnique({
       where: { shareToken },
       select: {
-        id: true,
         name: true,
         theme: true,
         shareToken: true,
@@ -112,6 +115,14 @@ export async function getFriendByShareToken(shareToken: string) {
         validUntil: true,
       },
     });
+    // Backstop: React refuses to serialize this object to a client
+    // component, so callers must pick fields into an explicit DTO
+    if (friend) {
+      taintObjectReference(
+        "Do not pass the share-token friend row to the client. Pick the fields the client needs.",
+        friend
+      );
+    }
     return friend;
   } catch {
     return null;

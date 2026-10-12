@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getFriendByShareToken } from "@/lib/actions/friend";
-import { getGiftSuggestions } from "@/lib/actions/gift";
+import { getGiftSuggestionsByShareToken } from "@/lib/actions/gift";
 import { getGameResultsForFriend } from "@/lib/actions/game";
 import { THEMES } from "@/lib/themes";
 import type { ThemeKey } from "@/lib/themes";
@@ -84,7 +84,7 @@ export default async function PlayPage({
   const alreadyPlayedCount = gameData?.totalCount ?? 0;
   const previousResults = gameData?.results ?? null;
 
-  const result = await getGiftSuggestions(friend.id);
+  const result = await getGiftSuggestionsByShareToken(shareToken);
 
   if ("error" in result) {
     return (
@@ -103,7 +103,11 @@ export default async function PlayPage({
     <PixelLayout theme={theme}>
       <PlayClient
         themeKey={themeKey}
-        friend={friend}
+        friend={{
+          name: friend.name,
+          interests: friend.interests,
+          hobbies: friend.hobbies,
+        }}
         theme={theme}
         gifts={result.suggestions as GiftSuggestion[]}
         shareToken={shareToken}

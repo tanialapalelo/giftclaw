@@ -17,7 +17,7 @@ Tell us about your friend → AI suggests 8 personalized gifts → Share the cla
 - **Vibe Reveal System**: Each grab reveals a mood-based clue (not the gift name); receiver picks up to 20 vibes across sessions
 - **Grab History**: All grabs are persisted per session; gift giver sees exactly what was grabbed and what to buy
 - **Edit Profile**: Gift giver can update the friend profile and set a link expiry date; editing clears cached AI results to regenerate fresh suggestions
-- **Privacy by Design**: Budget, notes, and gift names are never exposed to the receiver. Two separate UUIDs: private `/friends/[id]` and shareable `/play/[shareToken]`
+- **Privacy by Design**: Budget and notes are never exposed to the receiver, and the play page receives only the friend's name, interests, and hobbies (never the private id). Gift details are still sent to the receiver's browser for the claw game. Two separate UUIDs: private `/friends/[id]` and shareable `/play/[shareToken]`
 - **4 Themes**: Soft & Elegant 🌸, Bold & Cool ⚡, Cute & Playful 🧸, Classic Arcade 🎪
 - **Smart Caching**: AI results cached in DB; no redundant API calls for the same profile
 - **Rate Limiting**: Upstash Redis sliding window (5 requests/min per IP) prevents API abuse
@@ -207,8 +207,8 @@ giftclaw/
 
 ## 🔒 Privacy & Security
 
-- **Two-UUID model**: `id` (private, gift giver only) and `shareToken` (receiver link). Receiver cannot reverse-engineer the private URL.
-- **Field-level select**: `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `validUntil`; budget and notes never leave the server for receiver requests.
+- **Two-UUID model**: `id` (private, gift giver only) and `shareToken` (receiver link). The play page resolves everything by `shareToken` on the server and never sends the private `id` to the receiver (backed by React taint APIs), so the receiver cannot reach the giver dashboard.
+- **Field-level select**: `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `interests`, `hobbies`, `validUntil` (no `id`); budget and notes never leave the server for receiver requests.
 - **Rate limiting**: 5 AI requests per IP per minute via Upstash Redis sliding window; prevents both accidental and malicious Gemini API abuse.
 - **Input sanitization**: Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
 - **Honeypot field**: Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.

@@ -2,7 +2,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Enables React's taint APIs (lib/taint.ts) so receiver-facing data
+    // can't be passed whole to a client component by mistake
+    taint: true,
+  },
 };
 
 export default withSentryConfig(nextConfig, {

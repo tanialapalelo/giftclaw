@@ -8,13 +8,19 @@ vi.mock("@/lib/prisma", () => ({
     friend: {
       findUnique: vi.fn(),
     },
+    giftSuggestion: {
+      findFirst: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
 
 // Import after mock, so we get the mocked version
 import { prisma } from "@/lib/prisma";
-import { saveGameResult } from "@/lib/actions/gift";
+import {
+  getGiftSuggestionsByShareToken,
+  saveGameResult,
+} from "@/lib/actions/gift";
 
 const FRIEND_ID = "a3f2c1d0-4e5f-4a6b-8c9d-0e1f2a3b4c5d";
 const SHARE_TOKEN = "b4e3d2c1-5f6a-4b7c-9d0e-1f2a3b4c5d6e";
@@ -149,5 +155,46 @@ describe("saveGameResult", () => {
     expect(succeeded).toHaveLength(1);
     expect(rejected).toHaveLength(1);
     expect(savedCount).toBe(MAX_ATTEMPTS);
+  });
+});
+
+describe("getGiftSuggestionsByShareToken", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects a malformed shareToken without querying", async () => {
+    const result = await getGiftSuggestionsByShareToken("not-a-uuid");
+    expect(result).toEqual({ error: "Invalid ID" });
+    expect(prisma.friend.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns not found for an unknown shareToken", async () => {
+    vi.mocked(prisma.friend.findUnique).mockResolvedValue(null);
+    const result = await getGiftSuggestionsByShareToken(SHARE_TOKEN);
+    expect(result).toEqual({ error: "Friend not found" });
+  });
+
+  it("resolves the friend server-side and returns cached suggestions", async () => {
+    vi.mocked(prisma.friend.findUnique).mockResolvedValue({
+      id: FRIEND_ID,
+    } as unknown as Awaited<ReturnType<typeof prisma.friend.findUnique>>);
+    vi.mocked(prisma.giftSuggestion.findFirst).mockResolvedValue({
+      suggestions: [GIFT_SNAPSHOT],
+      modelVersion: "test",
+    } as unknown as Awaited<ReturnType<typeof prisma.giftSuggestion.findFirst>>);
+
+    const result = await getGiftSuggestionsByShareToken(SHARE_TOKEN);
+
+    expect(prisma.friend.findUnique).toHaveBeenCalledWith({
+      where: { shareToken: SHARE_TOKEN },
+      select: { id: true },
+    });
+    expect(prisma.giftSuggestion.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { friendId: FRIEND_ID } })
+    );
+    expect(result).toMatchObject({ suggestions: [GIFT_SNAPSHOT], cached: true });
+    // The friend id is only used to look up suggestions, never returned
+    expect(JSON.stringify(result)).not.toContain(FRIEND_ID);
   });
 });
