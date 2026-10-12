@@ -20,7 +20,7 @@ Tell us about your friend → AI suggests 8 personalized gifts → Share the cla
 - **Privacy by Design**: Budget and notes are never exposed to the receiver, and the play page receives only the friend's name, interests, and hobbies (never the private id). Gift details are still sent to the receiver's browser for the claw game. Two separate UUIDs: private `/friends/[id]` and shareable `/play/[shareToken]`
 - **4 Themes**: Soft & Elegant 🌸, Bold & Cool ⚡, Cute & Playful 🧸, Classic Arcade 🎪
 - **Smart Caching**: AI results cached in DB; no redundant API calls for the same profile
-- **Rate Limiting**: Upstash Redis sliding window (5 requests/min per IP) prevents API abuse
+- **Rate Limiting**: Per-action Upstash Redis sliding-window limits per IP on gift generation, profile create/update, and game grabs/history; see `lib/rate-limit.ts`
 - **Observability**: Sentry error tracking + Vercel Analytics + Speed Insights
 - **Recent Profiles**: localStorage remembers your last 5 profiles, no login required
 
@@ -198,7 +198,7 @@ giftclaw/
    → "GIFT TO BUY" section shows what to purchase
 
 6. AI generation (lazy, on first visit):
-   → Rate limit check (5 req/min/IP via Upstash sliding window)
+   → Rate limit check (5 req/min/IP for this action, via Upstash sliding window)
    → Gemini 2.5 Flash generates 8 gifts with unique emoji per gift
    → Result cached in DB, subsequent visits served from cache
 ```
@@ -209,7 +209,8 @@ giftclaw/
 
 - **Two-UUID model**: `id` (private, gift giver only) and `shareToken` (receiver link). The play page resolves everything by `shareToken` on the server and never sends the private `id` to the receiver (backed by React taint APIs), so the receiver cannot reach the giver dashboard.
 - **Field-level select**: `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `interests`, `hobbies`, `validUntil` (no `id`); budget and notes never leave the server for receiver requests.
-- **Rate limiting**: 5 AI requests per IP per minute via Upstash Redis sliding window; prevents both accidental and malicious Gemini API abuse.
+- **Rate limiting**: Each mutating action has its own per-IP Upstash Redis sliding-window limit (limits live in `lib/rate-limit.ts`); Gemini generation is the tightest at 5 per minute. Fails open, with a Sentry report, if Redis is unavailable.
+- **Request hardening**: Server Action bodies are capped at 64 KB and `validUntil` must be a valid `YYYY-MM-DD` date.
 - **Input sanitization**: Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
 - **Honeypot field**: Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.
 - **UUID guard**: All `[id]` and `[shareToken]` routes validate format before hitting the DB.

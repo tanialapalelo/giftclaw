@@ -15,6 +15,11 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+// Rate limiting is covered in rate-limit.test.ts; here every call is allowed
+vi.mock("@/lib/rate-limit", () => ({
+  checkRateLimit: vi.fn(async () => ({ success: true })),
+}));
+
 // Import after mock, so we get the mocked version
 import { prisma } from "@/lib/prisma";
 import {

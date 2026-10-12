@@ -31,7 +31,9 @@ export const friendSchema = z
 
     currency: z.enum(["IDR", "USD", "SGD", "MYR", "EUR", "GBP"]).default("IDR"),
 
-    validUntil: z.string().nullable().optional(),
+    // Date-only YYYY-MM-DD from <input type="date">; anything else would
+    // reach new Date() as "Invalid Date" and crash the Prisma write
+    validUntil: z.iso.date("Enter a valid date").nullish(),
 
     // Honeypot, only bots will fill this field, zod validates that it's always an empty string
     _honeypot: z.string().max(0, "Bot detected").default(""),
@@ -50,5 +52,15 @@ export const friendSchema = z
       });
     }
   });
+
+// Earliest validUntil accepted when creating a friend. The server runs in
+// UTC but the date picker uses the giver's local "today", which can be up to
+// a day behind UTC (e.g. UTC-10 in the evening), so allow yesterday-in-UTC
+// to avoid rejecting a legitimate "today" from those time zones.
+export function earliestValidUntil(now: Date = new Date()): string {
+  const d = new Date(now);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
 
 export type FriendFormData = z.infer<typeof friendSchema>;

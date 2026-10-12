@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
     // Enables React's taint APIs (lib/taint.ts) so receiver-facing data
     // can't be passed whole to a client component by mistake
     taint: true,
+    serverActions: {
+      // Default is 1 MB. Real payloads (a friend profile, one gift snapshot)
+      // are a few KB, so cap well below that to limit JSONB stuffing.
+      bodySizeLimit: "64kb",
+    },
   },
 };
 

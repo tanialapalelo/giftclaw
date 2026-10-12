@@ -3,8 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { prisma } from "@/lib/prisma";
 import { analyzeGifts } from "@/lib/gemini";
-import { rateLimiter } from "@/lib/rate-limit";
-import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { FriendProfile } from "@/types";
 import { isValidUUID } from "@/lib/utils";
 import { taintUniqueValue } from "@/lib/taint";
@@ -55,34 +54,13 @@ async function loadGiftSuggestions(friendId: string) {
   }
 
   // Rate-limit per IP before hitting the Gemini API
-  const headersList = await headers();
-  const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0] ??
-    headersList.get("x-real-ip") ??
-    "anonymous";
-
-  try {
-    const { success, limit, remaining } = await rateLimiter.limit(ip);
-
-    if (!success) {
-      Sentry.addBreadcrumb({
-        category: "rate-limit",
-        message: `Rate limit hit by IP: ${ip}`,
-        level: "warning",
-      });
-
-      return {
-        error: `Rate limit exceeded. Try again in a minute.`,
-        limit,
-        remaining,
-      };
-    }
-  } catch (redisError) {
-    // Redis unavailable (e.g. Upstash free-tier inactivity pause), fail open
-    // so the app keeps working; Sentry logs it for visibility.
-    Sentry.captureException(redisError, {
-      tags: { action: "getGiftSuggestions", step: "rate-limit" },
-    });
+  const rateLimit = await checkRateLimit("giftSuggestions");
+  if (!rateLimit.success) {
+    return {
+      error: `Rate limit exceeded. Try again in a minute.`,
+      limit: rateLimit.limit,
+      remaining: rateLimit.remaining,
+    };
   }
 
   // Fetch the friend profile needed to build the Gemini prompt
@@ -159,6 +137,11 @@ export async function saveGameResult({
 }) {
   if (!isValidUUID(shareToken) || !isValidUUID(sessionId))
     return { error: "Invalid ID" };
+
+  const rateLimit = await checkRateLimit("saveGameResult");
+  if (!rateLimit.success) {
+    return { error: "Too many grabs. Try again in a minute." };
+  }
 
   try {
     const friend = await prisma.friend.findUnique({
