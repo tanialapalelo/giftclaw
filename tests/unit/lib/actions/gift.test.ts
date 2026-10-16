@@ -321,7 +321,9 @@ describe("getGiftSuggestionsByShareToken", () => {
     vi.mocked(prisma.giftSuggestion.findFirst).mockResolvedValue({
       suggestions: SUGGESTIONS,
       modelVersion: "test",
-    } as unknown as Awaited<ReturnType<typeof prisma.giftSuggestion.findFirst>>);
+    } as unknown as Awaited<
+      ReturnType<typeof prisma.giftSuggestion.findFirst>
+    >);
 
     const result = await getGiftSuggestionsByShareToken(SHARE_TOKEN);
 
@@ -335,5 +337,56 @@ describe("getGiftSuggestionsByShareToken", () => {
     expect(result).toMatchObject({ suggestions: SUGGESTIONS, cached: true });
     // The friend id is only used to look up suggestions, never returned
     expect(JSON.stringify(result)).not.toContain(FRIEND_ID);
+  });
+});
+
+describe("getGiftSuggestions", () => {
+  it("calls Gemini once when two first loads overlap", async () => {
+    vi.resetModules();
+    const analyzeGifts = vi.fn(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ suggestions: [{ name: "Mug" }] }), 20)
+        )
+    );
+    const upsert = vi.fn().mockResolvedValue({});
+    vi.doMock("@/lib/prisma", () => ({
+      prisma: {
+        giftSuggestion: { findFirst: vi.fn().mockResolvedValue(null), upsert },
+        friend: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: FRIEND_ID,
+            shareToken: SHARE_TOKEN,
+            name: "Ana",
+            interests: [],
+            hobbies: [],
+            dislikes: [],
+            budgetMin: 0,
+            budgetMax: 100,
+            notes: null,
+            theme: null,
+            currency: "IDR",
+            createdAt: new Date(),
+          }),
+        },
+      },
+    }));
+    vi.doMock("@/lib/gemini", () => ({ analyzeGifts }));
+    vi.doMock("@/lib/rate-limit", () => ({
+      checkRateLimit: vi.fn().mockResolvedValue({ success: true }),
+    }));
+    vi.doMock("next/headers", () => ({
+      headers: vi.fn().mockResolvedValue(new Headers()),
+    }));
+
+    const { getGiftSuggestions } = await import("@/lib/actions/gift");
+    const [a, b] = await Promise.all([
+      getGiftSuggestions(FRIEND_ID),
+      getGiftSuggestions(FRIEND_ID),
+    ]);
+
+    expect(analyzeGifts).toHaveBeenCalledTimes(1);
+    expect(upsert).toHaveBeenCalledTimes(1);
+    expect(a).toEqual(b);
   });
 });

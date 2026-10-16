@@ -16,6 +16,13 @@ import {
   type SaveGameResultInput,
 } from "@/lib/validations";
 
+type SuggestionsResult =
+  | { suggestions: GiftSuggestion[]; modelVersion: string; cached: boolean }
+  | { error: string; limit?: number; remaining?: number };
+
+// Per-instance map of Gemini generations currently running, keyed by friendId
+const inFlight = new Map<string, Promise<SuggestionsResult>>();
+
 export async function getGiftSuggestions(friendId: string) {
   if (!isValidUUID(friendId)) return { error: "Invalid ID" };
   return loadGiftSuggestions(friendId);
@@ -43,7 +50,6 @@ export async function getGiftSuggestionsByShareToken(shareToken: string) {
 }
 
 async function loadGiftSuggestions(friendId: string) {
-
   // Return cached result if one exists, avoids redundant Gemini calls
   const cached = await prisma.giftSuggestion.findFirst({
     where: { friendId },
@@ -59,6 +65,18 @@ async function loadGiftSuggestions(friendId: string) {
     };
   }
 
+  // Single-flight per friend: concurrent first loads share one Gemini call
+  const pending = inFlight.get(friendId);
+  if (pending) return pending;
+
+  const run = generateAndCache(friendId).finally(() => {
+    inFlight.delete(friendId);
+  });
+  inFlight.set(friendId, run);
+  return run;
+}
+
+async function generateAndCache(friendId: string): Promise<SuggestionsResult> {
   // Rate-limit per IP before hitting the Gemini API
   const rateLimit = await checkRateLimit("giftSuggestions");
   if (!rateLimit.success) {
@@ -107,9 +125,15 @@ async function loadGiftSuggestions(friendId: string) {
     });
 
     // Persist result so subsequent loads hit the cache instead of Gemini
-    await prisma.giftSuggestion.create({
-      data: {
+    // Upsert on the unique friendId so concurrent first loads leave one row
+    await prisma.giftSuggestion.upsert({
+      where: { friendId },
+      create: {
         friendId,
+        suggestions: result.suggestions,
+        modelVersion: "gemini-2.5-flash",
+      },
+      update: {
         suggestions: result.suggestions,
         modelVersion: "gemini-2.5-flash",
       },

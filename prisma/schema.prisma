@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -41,6 +40,9 @@ model GiftSuggestion {
 
   friend Friend @relation(fields: [friendId], references: [id], onDelete: Cascade)
 
+  // One cached suggestion set per friend; regeneration deletes it first.
+  @@unique([friendId])
+  @@index([friendId, createdAt])
   @@map("gift_suggestions")
 }
 
@@ -57,5 +59,6 @@ model GameResult {
   // grab_index is also CHECKed to 1..3 in SQL (Prisma can't model CHECKs);
   // see migration 20261004000000_game_result_grab_index_guards.
   @@unique([friendId, grabIndex])
+  @@index([friendId, createdAt])
   @@map("game_results")
 }
