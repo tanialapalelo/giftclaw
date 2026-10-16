@@ -211,6 +211,7 @@ giftclaw/
 - **Field-level select**: `getFriendByShareToken` returns only `name`, `theme`, `shareToken`, `interests`, `hobbies`, `validUntil` (no `id`); budget and notes never leave the server for receiver requests.
 - **Rate limiting**: Each mutating action has its own per-IP Upstash Redis sliding-window limit (limits live in `lib/rate-limit.ts`); Gemini generation is the tightest at 5 per minute. Fails open, with a Sentry report, if Redis is unavailable.
 - **Request hardening**: Server Action bodies are capped at 64 KB and `validUntil` must be a valid `YYYY-MM-DD` date.
+- **Security headers**: Every response carries `nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`, and a restrictive `Permissions-Policy`; `X-Powered-By` is off. A Content-Security-Policy ships in report-only mode (violations go to Sentry, nothing is blocked), and `/friends/*` pages are `noindex, nofollow`. Policy lives in `lib/security-headers.ts`.
 - **Input sanitization**: Zod schema trims whitespace and strips HTML tags on all string inputs server-side.
 - **Honeypot field**: Hidden `_honeypot` field in the create form; non-empty value rejects the submission silently.
 - **UUID guard**: All `[id]` and `[shareToken]` routes validate format before hitting the DB.
