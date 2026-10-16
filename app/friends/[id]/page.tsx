@@ -227,7 +227,7 @@ export default async function FriendPage({
             </p>
             <p className="font-body text-xs text-white/70">
               {hasResults
-                ? `${friend.name} can still play if they haven't used all 3 attempts.`
+                ? `${friend.name} can still play if they haven't used all ${MAX_ATTEMPTS} attempts.`
                 : `${friend.name} will play the claw machine and they won't see your budget or notes.`}
             </p>
             {isExpired ? (

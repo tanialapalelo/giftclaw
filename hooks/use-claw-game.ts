@@ -99,8 +99,7 @@ export function useClawGame(gifts: GiftSuggestion[]) {
     if (statePhaseRef.current === "moving") {
       dispatch({ type: "RESET", startX });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gifts]);
+  }, [gifts, startX]);
 
   useEffect(() => {
     return () => clearTimeouts();

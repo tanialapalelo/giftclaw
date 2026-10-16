@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import type { GiftSuggestion } from "@/types";
@@ -30,9 +30,16 @@ export function RevealPanel({
 }) {
   const vibe = getVibeFromGift(gift);
 
+  // Read the latest stinger through a ref so a new callback identity from
+  // the parent doesn't re-fire the effect
+  const playStingerRef = useRef(playStinger);
+  useEffect(() => {
+    playStingerRef.current = playStinger;
+  }, [playStinger]);
+
   // Fire the reveal stinger + confetti once, on mount
   useEffect(() => {
-    playStinger?.();
+    playStingerRef.current?.();
 
     if (isLucky) {
       // Golden burst for lucky grab
@@ -66,7 +73,6 @@ export function RevealPanel({
         colors: ["#facc15", "#f472b6", "#34d399", "#60a5fa", "#c084fc"],
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLucky]);
 
   return createPortal(

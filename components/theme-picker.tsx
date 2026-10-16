@@ -12,10 +12,17 @@ export function ThemePicker({
 }) {
   return (
     <div>
-      <label className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400">
+      <p
+        id="theme-picker-label"
+        className="mb-2 block font-pixel text-[9px] uppercase tracking-wider text-gray-400"
+      >
         Pick a vibe for their claw machine
-      </label>
-      <div className="grid grid-cols-2 gap-3">
+      </p>
+      <div
+        role="group"
+        aria-labelledby="theme-picker-label"
+        className="grid grid-cols-2 gap-3"
+      >
         {(Object.entries(THEMES) as [ThemeKey, Theme][]).map(([key, theme]) => (
           <button
             key={key}
